@@ -24,19 +24,24 @@ public class ADSPrac2 {
         Scanner scan = new Scanner(System.in);
         
         int listSize = scan.nextInt();
+        int nrQuestions = scan.nextInt();
+        
         Student[] students;
         students = new Student[listSize];
         
         for (int pos = 0; pos<listSize; pos++) {
-            float length = Float.parseFloat(scan.next());
-            float width = Float.parseFloat(scan.next());
-            float height = Float.parseFloat(scan.next());
-            Box box = new Box(length, width, height, pos);
-            boxesList[pos] = box;
+            int answers = scan.nextInt();
+            int score = scan.nextInt();
+            
+            String number = String.valueOf(answers);
+            char[] ans = number.toCharArray(); //of naar string????????????????????????? of int???????????
+            
+            Student s = new Student(ans, score);
+            students[pos] = s;
             
         }
         scan.close();
-        return boxesList;
+        return students;
     }
     
 }

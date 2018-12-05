@@ -11,15 +11,15 @@ package adsprac2;
  */
 public class Student {
     
-    private int[] answers;
+    private char[] answers;
     private int score;
     
-    public void Student(int[] answers, int score) {
+    Student(char[] answers, int score) {
         this.answers = answers;
         this.score = score;
     }
     
-    public int[] getAnswers() {
+    public char[] getAnswers() {
         return this.answers;
     }
     
@@ -27,7 +27,7 @@ public class Student {
         return this.score;
     }
     
-    public void setAnswers(int[] a) {
+    public void setAnswers(char[] a) {
         this.answers = a;
     }
     

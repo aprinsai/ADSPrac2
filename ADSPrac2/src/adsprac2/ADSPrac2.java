@@ -13,20 +13,22 @@ import java.util.Scanner;
  */
 public class ADSPrac2 {
     
-    private int nrOfStudents;
-    private int nrQuestions;
+    private static int nrOfStudents;
+    private static int nrQuestions;
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+        // nothing yet
     }
     
-    //nodig?
-    private int[][] makeMatrix(Student[] students, int nrOfStudents, int nrQuestions) {
-        int[][] matrix = new int[nrQuestions][nrOfStudents];
-        
+    private int[][] makeMatrix(Student[] students) {
+        int[][] matrix = new int[nrOfStudents][nrQuestions];
+        for (int i=0; i<nrOfStudents; i++ ) {
+            for (int j=0; j<nrQuestions; j++)
+                matrix[i][j] = students[i].getAnswers()[j];
+        }
         return matrix;
     }
     

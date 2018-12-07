@@ -22,12 +22,7 @@ public class ADSPrac2 {
     public static void main(String[] args) {
         int n=3;
         int[][] models = generateAnswerModels(n);
-        for(int i=0; i<models.length; i++){
-            for(int j=0; j<n; j++){
-                System.out.print(" "+ models[i][j]);
-            }
-            System.out.println("");
-        }
+        
     }
     
     private int[][] makeMatrix(Student[] students) {
@@ -87,6 +82,22 @@ public class ADSPrac2 {
          }
         
         return models;
+    }
+    
+    private static boolean checkModel(int[] model, Student[] students){
+        for(Student student : students){
+            int[] answers = student.getAnswers();
+            int count = 0;
+            for(int m=0; m<model.length; m++){
+                if(model[m] == answers[m]){
+                    count++;
+                } 
+            }
+            if(count != student.getScore()){
+                return false;
+            }
+        }
+        return true;
     }
     
 }

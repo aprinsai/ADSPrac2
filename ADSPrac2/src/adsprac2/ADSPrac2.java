@@ -12,6 +12,9 @@ import java.util.Scanner;
  * @author Anouk
  */
 public class ADSPrac2 {
+    
+    private int nrOfStudents;
+    private int nrQuestions;
 
     /**
      * @param args the command line arguments
@@ -20,21 +23,31 @@ public class ADSPrac2 {
         // TODO code application logic here
     }
     
+    //nodig?
+    private int[][] makeMatrix(Student[] students, int nrOfStudents, int nrQuestions) {
+        int[][] matrix = new int[nrQuestions][nrOfStudents];
+        
+        return matrix;
+    }
+    
     private Student[] readIn() {
         Scanner scan = new Scanner(System.in);
         
-        int listSize = scan.nextInt();
-        int nrQuestions = scan.nextInt();
+        nrOfStudents = scan.nextInt();
+        nrQuestions = scan.nextInt();
         
         Student[] students;
-        students = new Student[listSize];
+        students = new Student[nrOfStudents];
         
-        for (int pos = 0; pos<listSize; pos++) {
+        for (int pos = 0; pos<nrOfStudents; pos++) {
             int answers = scan.nextInt();
             int score = scan.nextInt();
             
             String number = String.valueOf(answers);
-            char[] ans = number.toCharArray(); //of naar string????????????????????????? of int???????????
+            int[] ans = new int[number.length()];
+            for (int i=0; i < number.length(); i++) {
+                ans[i] = number.charAt(i) - '0'; 
+            }
             
             Student s = new Student(ans, score);
             students[pos] = s;

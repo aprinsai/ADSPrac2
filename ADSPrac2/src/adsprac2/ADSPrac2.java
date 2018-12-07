@@ -20,11 +20,28 @@ public class ADSPrac2 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        int n=3;
-        int[][] models = generateAnswerModels(n);
+        nrOfStudents=3;
+        nrQuestions=5;
+        
+        Student[] students = new Student[nrOfStudents];
+        Student s1 = new Student(new int[]{0,1,1,0,1},4);
+        Student s2 = new Student(new int[]{1,0,1,0,0},3);
+        Student s3 = new Student(new int[]{0,0,0,1,1},3);
+        
+        students[0] = s1;
+        students[1] = s2;
+        students[2] = s3;
+        
+        int[][] models = generateAnswerModels(nrQuestions);
+        
+        for (int i=0; i<models.length; i++){
+            if (checkModel(models[i], students))
+                System.out.print(models[i].toString()); //helaas niks leesbaars
+        }
         
     }
     
+    //niet nodig #sad
     private int[][] makeMatrix(Student[] students) {
         int[][] matrix = new int[nrOfStudents][nrQuestions];
         for (int i=0; i<nrOfStudents; i++ ) {

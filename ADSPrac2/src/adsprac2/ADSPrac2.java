@@ -5,6 +5,7 @@
  */
 package adsprac2;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -20,8 +21,31 @@ public class ADSPrac2 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        int n=3;
-        int[][] models = generateAnswerModels(n);
+        int m=3;
+        Student[] students = readIn();
+        //Divide the questions in half
+        int half1 = m/2;
+        int half2 = m-half1;
+        
+        //Find models for both halfs
+        int[][] models1 = generateAnswerModels(half1);
+        int[][] models2 = generateAnswerModels(half2);
+        
+        //Check models for both halfs
+        ArrayList<int[]> correctModels1 = new ArrayList<>();
+        for(int i=0; i<models1.length; i++){
+            if(checkModel(models1[i], students, 0, half1)){
+                correctModels1.add(models1[i]);
+            }
+        }
+        ArrayList<int[]> correctModels2 = new ArrayList<>();
+        for(int i=0; i<models2.length; i++){
+            if(checkModel(models2[i], students, half1+1, m)){
+                correctModels2.add(models2[i]);
+            }
+        }
+        
+        //Combine results
         
     }
     
@@ -34,7 +58,7 @@ public class ADSPrac2 {
         return matrix;
     }
     
-    private Student[] readIn() {
+    private static Student[] readIn() {
         Scanner scan = new Scanner(System.in);
         
         nrOfStudents = scan.nextInt();
@@ -84,11 +108,11 @@ public class ADSPrac2 {
         return models;
     }
     
-    private static boolean checkModel(int[] model, Student[] students){
+    private static boolean checkModel(int[] model, Student[] students, int from, int to){
         for(Student student : students){
             int[] answers = student.getAnswers();
             int count = 0;
-            for(int m=0; m<model.length; m++){
+            for(int m=from; m<to; m++){
                 if(model[m] == answers[m]){
                     count++;
                 } 

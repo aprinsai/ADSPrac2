@@ -37,27 +37,29 @@ public class ADSPrac2 {
         StudentComparator sc = new StudentComparator();
         students.sort(sc.reversed());
         
-        ArrayList<int[]> models = generateAnswerModels(nrQuestions);
-        for(int[] model : models){
-            for(int i=0; i<model.length; i++){
-                System.out.print(model[i]+" ");
-            }
-            System.out.println("");
-        }
+        //ArrayList<int[]> models = generateAnswerModels(nrQuestions);
         
         //for (int i=0; i<models.length; i++){
         //    if (checkModel(models[i], students))
         //        System.out.print(models[i].toString()); //helaas niks leesbaars
         //}
-        int m=3;
+        //int m=3;
         //Student[] students = readIn();
         //Divide the questions in half
-        int half1 = m/2;
-        int half2 = m-half1;
+        int half1 = nrQuestions/2;
+        int half2 = nrQuestions-half1;
         
         //Find models for both halfs
         ArrayList<int[]> models1 = generateAnswerModels(half1);
         ArrayList<int[]> models2 = generateAnswerModels(half2);
+        
+        int totalScore = 4;
+        int left = 3;
+        int right = 2;
+        ArrayList<int[]> divisions = computeDivisions(totalScore, left, right);
+        for(int[] division : divisions){
+            System.out.println("["+division[0]+","+division[1]+"]");
+        }
         
         /*
         //Check models for both halfs 
@@ -138,6 +140,22 @@ public class ADSPrac2 {
          }
         
         return models;
+    }
+    
+    private static ArrayList<int[]> computeDivisions(int totalScore, int left, int right){
+        ArrayList<int[]> divisions = new ArrayList<>();
+        int leftScore = totalScore;
+        if(leftScore >= left){ //if the total score is larger than the left part, add the division where the complete first part is correct and the remaining correct answers are in the right half
+            int[] subscores = {left, totalScore-left}; 
+            divisions.add(subscores);
+            leftScore = left - 1;
+        }
+        while(leftScore >= 0 && totalScore-leftScore <= right){
+            int[] subscores = {leftScore, totalScore-leftScore};
+            divisions.add(subscores);
+            leftScore--;
+        }
+        return divisions;
     }
     
     private static boolean checkModel(int[] model, Student[] students, int from, int to){

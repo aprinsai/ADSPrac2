@@ -6,6 +6,7 @@
 package adsprac2;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Scanner;
 
@@ -46,12 +47,10 @@ public class ADSPrac2 {
         //int m=3;
         //Student[] students = readIn();
         //Divide the questions in half
-        int half1 = nrQuestions/2;
-        int half2 = nrQuestions-half1;
+        
         
         //Find models for both halfs
-        ArrayList<int[]> models1 = generateAnswerModels(half1);
-        ArrayList<int[]> models2 = generateAnswerModels(half2);
+        
         
         int totalScore = 4;
         int left = 3;
@@ -144,12 +143,34 @@ public class ADSPrac2 {
     
     private static ArrayList<int[]> findPossibleModels(Student[] students){
         //divide into halves
+        int sizeHalf1 = nrQuestions/2;
+        int sizeHalf2 = nrQuestions-sizeHalf1;
+        
         //make possible leftModels and possible rightModels (generateAnswerModels)
+        ArrayList<int[]> models1 = generateAnswerModels(sizeHalf1);
+        ArrayList<int[]> models2 = generateAnswerModels(sizeHalf2);
+        
         //for each student
-        //  find all score divisions
-        //  for each score division 
-        //      reduce leftModels and rightModels
+        for(Student student : students){
+            //find all possible score divisions over the two halves
+            ArrayList<int[]> divisions = computeDivisions(student.getScore(), sizeHalf1, sizeHalf2);
+            
+            //Divide student's answers into two sets
+            int[] answers = student.getAnswers();
+            int[] answers1 = Arrays.copyOfRange(answers, 0, sizeHalf1);
+            int[] answers2 = Arrays.copyOfRange(answers, sizeHalf1, nrQuestions);
+            
+            //for each score division
+            for(int[] division : divisions){
+                //reduce leftModels and rightModels
+                models1 = reduceModels (answers1, models1, division[0]);
+                models2 = reduceModels (answers2, models2, division[1]);
+            }
+        }
+        
         //find all possible combinations of remaining leftModels and rightModels
+        
+        
         return null;
     }
     

@@ -142,6 +142,17 @@ public class ADSPrac2 {
         return models;
     }
     
+    /**
+     * per student will be called twice for both halves
+     * remove answermodels from models if they do not give the score that is passed.
+     * @param answers
+     * @param models
+     * @param score 
+     */
+    private void reduceModels (int[] answers, ArrayList<int[]> models, int score) {
+        
+    }
+    
     private static ArrayList<int[]> computeDivisions(int totalScore, int left, int right){
         ArrayList<int[]> divisions = new ArrayList<>();
         int leftScore = totalScore;
@@ -172,6 +183,16 @@ public class ADSPrac2 {
             }
         }
         return true;
+    }
+    
+    private static boolean checkModel(int[] model, int[] answers, int subscore){
+        int count = 0;
+        for(int i=0; i<answers.length; i++){
+            if(model[i] == answers[i]){
+                count++;
+            }
+        }
+        return count == subscore;
     }
     
 }

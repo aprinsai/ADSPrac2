@@ -9,7 +9,7 @@ package adsprac2;
  *
  * @author Anouk
  */
-public class Student {
+public class Student{
     
     private int[] answers;
     private int score;
@@ -34,4 +34,5 @@ public class Student {
     public void setScore(int s) {
         this.score = s;
     }
+
 }

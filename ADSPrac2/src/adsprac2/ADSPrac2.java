@@ -6,6 +6,7 @@
 package adsprac2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Scanner;
 
 /**
@@ -24,14 +25,17 @@ public class ADSPrac2 {
         nrOfStudents=3;
         nrQuestions=3;
         
-        Student[] students = new Student[nrOfStudents];
+        ArrayList<Student> students = new ArrayList<>();
         Student s1 = new Student(new int[]{0,1,1,0,1},4);
-        Student s2 = new Student(new int[]{1,0,1,0,0},3);
+        Student s2 = new Student(new int[]{1,0,1,0,0},5);
         Student s3 = new Student(new int[]{0,0,0,1,1},3);
         
-        students[0] = s1;
-        students[1] = s2;
-        students[2] = s3;
+        students.add(s1);
+        students.add(s2);
+        students.add(s3);
+        
+        StudentComparator sc = new StudentComparator();
+        students.sort(sc.reversed());
         
         ArrayList<int[]> models = generateAnswerModels(nrQuestions);
         for(int[] model : models){

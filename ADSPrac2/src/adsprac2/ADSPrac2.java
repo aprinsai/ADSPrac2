@@ -142,6 +142,17 @@ public class ADSPrac2 {
         return models;
     }
     
+    private static ArrayList<int[]> findPossibleModels(Student[] students){
+        //divide into halves
+        //make possible leftModels and possible rightModels (generateAnswerModels)
+        //for each student
+        //  find all score divisions
+        //  for each score division 
+        //      reduce leftModels and rightModels
+        //find all possible combinations of remaining leftModels and rightModels
+        return null;
+    }
+    
     /**
      * per student will be called twice for both halves
      * remove answermodels from models if they do not give the score that is passed.

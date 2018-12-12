@@ -149,8 +149,13 @@ public class ADSPrac2 {
      * @param models
      * @param score 
      */
-    private void reduceModels (int[] answers, ArrayList<int[]> models, int score) {
-        
+    private static ArrayList<int[]> reduceModels (int[] answers, ArrayList<int[]> models, int subscore) { //nu nog maar voor 1 subscore
+        for(int[] model : models){
+            if(!checkModel(model, answers, subscore)){
+                models.remove(model);
+            }
+        }
+        return models;
     }
     
     private static ArrayList<int[]> computeDivisions(int totalScore, int left, int right){
@@ -167,22 +172,6 @@ public class ADSPrac2 {
             leftScore--;
         }
         return divisions;
-    }
-    
-    private static boolean checkModel(int[] model, Student[] students, int from, int to){
-        for(Student student : students){
-            int[] answers = student.getAnswers();
-            int count = 0;
-            for(int m=from; m<to; m++){
-                if(model[m] == answers[m]){
-                    count++;
-                } 
-            }
-            if(count != student.getScore()){
-                return false;
-            }
-        }
-        return true;
     }
     
     private static boolean checkModel(int[] model, int[] answers, int subscore){

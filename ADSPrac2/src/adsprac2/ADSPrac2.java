@@ -22,7 +22,7 @@ public class ADSPrac2 {
      */
     public static void main(String[] args) {
         nrOfStudents=3;
-        nrQuestions=5;
+        nrQuestions=3;
         
         Student[] students = new Student[nrOfStudents];
         Student s1 = new Student(new int[]{0,1,1,0,1},4);
@@ -33,7 +33,13 @@ public class ADSPrac2 {
         students[1] = s2;
         students[2] = s3;
         
-        int[][] models = generateAnswerModels(nrQuestions);
+        ArrayList<int[]> models = generateAnswerModels(nrQuestions);
+        for(int[] model : models){
+            for(int i=0; i<model.length; i++){
+                System.out.print(model[i]+" ");
+            }
+            System.out.println("");
+        }
         
         //for (int i=0; i<models.length; i++){
         //    if (checkModel(models[i], students))
@@ -46,10 +52,11 @@ public class ADSPrac2 {
         int half2 = m-half1;
         
         //Find models for both halfs
-        int[][] models1 = generateAnswerModels(half1);
-        int[][] models2 = generateAnswerModels(half2);
+        ArrayList<int[]> models1 = generateAnswerModels(half1);
+        ArrayList<int[]> models2 = generateAnswerModels(half2);
         
-        //Check models for both halfs
+        /*
+        //Check models for both halfs 
         ArrayList<int[]> correctModels1 = new ArrayList<>();
         for(int i=0; i<models1.length; i++){
             if(checkModel(models1[i], students, 0, half1)){
@@ -61,7 +68,7 @@ public class ADSPrac2 {
             if(checkModel(models2[i], students, half1+1, m)){
                 correctModels2.add(models2[i]);
             }
-        }
+        } */
         
         //Combine results
         
@@ -107,21 +114,23 @@ public class ADSPrac2 {
     /*
     Generates all possible answer models for a given number of yes/no questions
     */
-    private static int[][] generateAnswerModels(int nrQuestions){
+    private static ArrayList<int[]> generateAnswerModels(int nrQuestions){
         int nrModels = (int) Math.pow(2, nrQuestions);
-        int[][] models = new int[nrModels][nrQuestions];
+        ArrayList<int[]> models = new ArrayList<>();
         
         for(int i=0; i<nrModels; i++)
         {
             int temp = i;
+            int[] answers = new int[nrQuestions];
             for (int j = 0; j < nrQuestions; j++)
             {
                 if (temp%2 == 1)
-                    models[i][j] = 1;
+                    answers[j]=1;
                 else
-                    models[i][j] = 0;
+                    answers[j] = 0;
                     temp = temp/2;
             }
+            models.add(answers);
          }
         
         return models;

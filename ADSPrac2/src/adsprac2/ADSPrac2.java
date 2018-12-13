@@ -7,7 +7,6 @@ package adsprac2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Scanner;
 
 /**
@@ -18,13 +17,17 @@ public class ADSPrac2 {
     
     private static int nrOfStudents;
     private static int nrQuestions;
+    private static int sizeHalf1;
+    private static int sizeHalf2;
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         nrOfStudents=3;
-        nrQuestions=3;
+        nrQuestions=5;
+        sizeHalf1=3;
+        sizeHalf2=2;
         
         ArrayList<Student> students = new ArrayList<>();
         Student s1 = new Student(new int[]{0,1,1,0,1},4);
@@ -37,6 +40,30 @@ public class ADSPrac2 {
         
         StudentComparator sc = new StudentComparator();
         students.sort(sc.reversed());
+        
+        /* TESTING findCombinations ---------------------------------------------*/
+        /*
+        int[] left1 = {1,1,0};
+        ArrayList<int[]> models1 = new ArrayList<>();
+        models1.add(left1);
+        
+        int[] right1 = {1,1};
+        int[] right2 = {0,0};
+        ArrayList<int[]> models2 = new ArrayList<>();
+        models2.add(right1);
+        models2.add(right2);
+        
+        ArrayList<int[]> testCombos = findCombinations(models1, models2);
+        System.out.println(testCombos.size());
+        for(int k=0; k<testCombos.size(); k++){
+            int[] combo = testCombos.get(k);
+            System.out.println("test2");
+            for(int z=0; z<combo.length; z++){
+                System.out.print(combo[z]);
+            }
+            System.out.println("");
+        } */
+        /*-----------------------------------------------------------------------*/
         
         //ArrayList<int[]> models = generateAnswerModels(nrQuestions);
         
@@ -51,14 +78,14 @@ public class ADSPrac2 {
         
         //Find models for both halfs
         
-        
+        /*
         int totalScore = 4;
         int left = 3;
         int right = 2;
         ArrayList<int[]> divisions = computeDivisions(totalScore, left, right);
         for(int[] division : divisions){
             System.out.println("["+division[0]+","+division[1]+"]");
-        }
+        } */
         
         /*
         //Check models for both halfs 
@@ -78,6 +105,8 @@ public class ADSPrac2 {
         //Combine results
         
     }
+
+    
     
     //niet nodig #sad
     private int[][] makeMatrix(Student[] students) {
@@ -129,11 +158,13 @@ public class ADSPrac2 {
             int[] answers = new int[nrQuestions];
             for (int j = 0; j < nrQuestions; j++)
             {
-                if (temp%2 == 1)
+                if (temp%2 == 1){
                     answers[j]=1;
-                else
+                }
+                else{
                     answers[j] = 0;
                     temp = temp/2;
+                }
             }
             models.add(answers);
          }
@@ -143,15 +174,23 @@ public class ADSPrac2 {
     
     private static ArrayList<int[]> findPossibleModels(Student[] students){
         //divide into halves
-        int sizeHalf1 = nrQuestions/2;
-        int sizeHalf2 = nrQuestions-sizeHalf1;
+        sizeHalf1 = nrQuestions/2;
+        sizeHalf2 = nrQuestions-sizeHalf1;
         
         //make possible leftModels and possible rightModels (generateAnswerModels)
         ArrayList<int[]> models1 = generateAnswerModels(sizeHalf1);
         ArrayList<int[]> models2 = generateAnswerModels(sizeHalf2);
         
+        //make possible totalModels where we save the possible combinations of left and right models
+        //first student will add to this, all following students will make the set smaller
+        ArrayList<int[]> totalModels = new ArrayList<>();
+        
         //for each student
-        for(Student student : students){
+        for(int s=0; s<students.length; s++){
+            Student student = students[s];
+            //Each student will leave only a certain combinations of left and right models possible
+            ArrayList<int[]> combsOfStudent = new ArrayList<>();
+            
             //find all possible score divisions over the two halves
             ArrayList<int[]> divisions = computeDivisions(student.getScore(), sizeHalf1, sizeHalf2);
             
@@ -165,10 +204,20 @@ public class ADSPrac2 {
                 //reduce leftModels and rightModels
                 models1 = reduceModels (answers1, models1, division[0]);
                 models2 = reduceModels (answers2, models2, division[1]);
+                ArrayList<int[]> combos = findCombinations(models1, models2);
+                //add combos to combsOfStudent
             }
+            
+            
+            if(s == 0){
+                for(int[] combo : combinations){
+                    
+                }
+            }
+            
         }
         
-        //find all possible combinations of remaining leftModels and rightModels
+        
         
         
         return null;
@@ -216,4 +265,19 @@ public class ADSPrac2 {
         return count == subscore;
     }
     
+    private static ArrayList<int[]> findCombinations(ArrayList<int[]> models1, ArrayList<int[]> models2) {
+        ArrayList<int[]> combinations = new ArrayList<>();
+        System.out.println("models1 size: " + models1.size());
+        System.out.println("models2 size: " + models2.size());
+        for(int i=0; i<models1.size(); i++){
+            for(int j=0; j<models2.size(); j++){
+                int[] combined = new int[nrQuestions];
+                System.arraycopy(models1.get(i), 0, combined, 0, sizeHalf1);
+                System.arraycopy(models2.get(j), 0, combined, sizeHalf1, sizeHalf2);
+                combinations.add(combined);
+                
+            }
+        }
+        return combinations;
+    }
 }

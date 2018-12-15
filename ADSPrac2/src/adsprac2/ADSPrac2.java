@@ -26,84 +26,23 @@ public class ADSPrac2 {
     public static void main(String[] args) {
         nrOfStudents=3;
         nrQuestions=5;
-        sizeHalf1=3;
-        sizeHalf2=2;
+        //sizeHalf1=3;
+        //sizeHalf2=2;
         
-        ArrayList<Student> students = new ArrayList<>();
+        Student[] students = new Student[3];
         Student s1 = new Student(new int[]{0,1,1,0,1},4);
-        Student s2 = new Student(new int[]{1,0,1,0,0},5);
+        Student s2 = new Student(new int[]{1,0,1,0,0},3);
         Student s3 = new Student(new int[]{0,0,0,1,1},3);
         
-        students.add(s1);
-        students.add(s2);
-        students.add(s3);
+        students[0] = s2;
+        students[1] = s1;
+        students[2] = s3;
         
         StudentComparator sc = new StudentComparator();
-        students.sort(sc.reversed());
+        Arrays.sort(students, sc.reversed());
         
-        /* TESTING findCombinations ---------------------------------------------*/
-        /*
-        int[] left1 = {1,1,0};
-        ArrayList<int[]> models1 = new ArrayList<>();
-        models1.add(left1);
-        
-        int[] right1 = {1,1};
-        int[] right2 = {0,0};
-        ArrayList<int[]> models2 = new ArrayList<>();
-        models2.add(right1);
-        models2.add(right2);
-        
-        ArrayList<int[]> testCombos = findCombinations(models1, models2);
-        System.out.println(testCombos.size());
-        for(int k=0; k<testCombos.size(); k++){
-            int[] combo = testCombos.get(k);
-            System.out.println("test2");
-            for(int z=0; z<combo.length; z++){
-                System.out.print(combo[z]);
-            }
-            System.out.println("");
-        } */
-        /*-----------------------------------------------------------------------*/
-        
-        //ArrayList<int[]> models = generateAnswerModels(nrQuestions);
-        
-        //for (int i=0; i<models.length; i++){
-        //    if (checkModel(models[i], students))
-        //        System.out.print(models[i].toString()); //helaas niks leesbaars
-        //}
-        //int m=3;
-        //Student[] students = readIn();
-        //Divide the questions in half
-        
-        
-        //Find models for both halfs
-        
-        /*
-        int totalScore = 4;
-        int left = 3;
-        int right = 2;
-        ArrayList<int[]> divisions = computeDivisions(totalScore, left, right);
-        for(int[] division : divisions){
-            System.out.println("["+division[0]+","+division[1]+"]");
-        } */
-        
-        /*
-        //Check models for both halfs 
-        ArrayList<int[]> correctModels1 = new ArrayList<>();
-        for(int i=0; i<models1.length; i++){
-            if(checkModel(models1[i], students, 0, half1)){
-                correctModels1.add(models1[i]);
-            }
-        }
-        ArrayList<int[]> correctModels2 = new ArrayList<>();
-        for(int i=0; i<models2.length; i++){
-            if(checkModel(models2[i], students, half1+1, m)){
-                correctModels2.add(models2[i]);
-            }
-        } */
-        
-        //Combine results
-        
+        ArrayList<int[]> models = findPossibleModels(students);
+        System.out.println("Number of possible answer models: " + models.size());
     }
 
     
@@ -167,8 +106,7 @@ public class ADSPrac2 {
                 }
             }
             models.add(answers);
-         }
-        
+        }
         return models;
     }
     
@@ -182,13 +120,12 @@ public class ADSPrac2 {
         ArrayList<int[]> models2 = generateAnswerModels(sizeHalf2);
         
         //make possible totalModels where we save the possible combinations of left and right models
-        //first student will add to this, all following students will make the set smaller
         ArrayList<int[]> totalModels = new ArrayList<>();
         
-        //for each student
+        //for each student  ---> SHOULD BECOME A WHILE LOOP SO WE CAN STOP ONCE NO POSSIBLE LEFT/RIGHT MODELS LEFT
         for(int s=0; s<students.length; s++){
             Student student = students[s];
-            //Each student will leave only a certain combinations of left and right models possible
+            //Each student will leave only a certain set of combinations of left and right models possible
             ArrayList<int[]> combsOfStudent = new ArrayList<>();
             
             //find all possible score divisions over the two halves
@@ -199,28 +136,54 @@ public class ADSPrac2 {
             int[] answers1 = Arrays.copyOfRange(answers, 0, sizeHalf1);
             int[] answers2 = Arrays.copyOfRange(answers, sizeHalf1, nrQuestions);
             
+            //Keep track of which left and right models are left possible by this student
+            ArrayList<int[]> allLeft = new ArrayList<>();
+            ArrayList<int[]> allRight = new ArrayList<>();
+            
             //for each score division
             for(int[] division : divisions){
-                //reduce leftModels and rightModels
-                models1 = reduceModels (answers1, models1, division[0]);
-                models2 = reduceModels (answers2, models2, division[1]);
-                ArrayList<int[]> combos = findCombinations(models1, models2);
+                ArrayList<int[]> m1copy = new ArrayList<>(models1);
+                ArrayList<int[]> m2copy = new ArrayList<>(models2);
+                ArrayList<int[]> left = reduceModels(answers1, m1copy, division[0]);
+                ArrayList<int[]> right = reduceModels(answers2, m2copy, division[1]);
+                
+                for(int[] l : left){
+                    if(!allLeft.contains(l)){
+                        allLeft.add(l);
+                    }
+                }
+                
+                for(int[] r : right){
+                    if(!allRight.contains(r)){
+                        allRight.add(r);
+                    }
+                }
+                
+                ArrayList<int[]> combos = findCombinations(left, right);
+                
                 //add combos to combsOfStudent
+                combsOfStudent.addAll(combos);
+                
             }
+            System.out.println("Size of combsOfStudent: "+combsOfStudent.size());
             
+            //Reduce models1 and models2
+            models1 = overlap(models1, allLeft);
+            models2 = overlap(models2, allRight);
             
+            //the first student determines the set of solutions to start out with
             if(s == 0){
-                for(int[] combo : combinations){
-                    
+                for(int[] combo : combsOfStudent){
+                    totalModels.add(combo);
                 }
             }
-            
+            //all subsequent students remove solutions from the original set
+            else{
+                //keep only the overlap between totalModels and combsOfStudent
+                totalModels = overlap(totalModels, combsOfStudent);
+            }   
         }
-        
-        
-        
-        
-        return null;
+        return totalModels;
     }
     
     /**
@@ -230,12 +193,14 @@ public class ADSPrac2 {
      * @param models
      * @param score 
      */
-    private static ArrayList<int[]> reduceModels (int[] answers, ArrayList<int[]> models, int subscore) { //nu nog maar voor 1 subscore
+    private static ArrayList<int[]> reduceModels (int[] answers, ArrayList<int[]> models, int subscore){
+        ArrayList<int[]> toRemove = new ArrayList<>();
         for(int[] model : models){
             if(!checkModel(model, answers, subscore)){
-                models.remove(model);
+                toRemove.add(model);
             }
         }
+        models.removeAll(toRemove);
         return models;
     }
     
@@ -267,8 +232,6 @@ public class ADSPrac2 {
     
     private static ArrayList<int[]> findCombinations(ArrayList<int[]> models1, ArrayList<int[]> models2) {
         ArrayList<int[]> combinations = new ArrayList<>();
-        System.out.println("models1 size: " + models1.size());
-        System.out.println("models2 size: " + models2.size());
         for(int i=0; i<models1.size(); i++){
             for(int j=0; j<models2.size(); j++){
                 int[] combined = new int[nrQuestions];
@@ -279,5 +242,15 @@ public class ADSPrac2 {
             }
         }
         return combinations;
+    }
+    
+    private static ArrayList<int[]> overlap(ArrayList<int[]> totalModels, ArrayList<int[]> combsOfStudent) {
+        ArrayList<int[]> overlap = new ArrayList<>();
+        for(int[] model : totalModels){
+            if(combsOfStudent.contains(model)){
+                overlap.add(model);
+            }
+        }
+        return overlap;
     }
 }

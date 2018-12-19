@@ -24,39 +24,45 @@ public class ADSPrac2 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        nrOfStudents=3;
+        
+        nrOfStudents=4;
         nrQuestions=5;
         //sizeHalf1=3;
         //sizeHalf2=2;
         
-        Student[] students = new Student[3];
-        Student s1 = new Student(new int[]{0,1,1,0,1},4);
-        Student s2 = new Student(new int[]{1,0,1,0,0},3);
-        Student s3 = new Student(new int[]{0,0,0,1,1},3);
+        Student[] students = new Student[4];
+        //Student s1 = new Student(new int[]{0,1,1,0,1},0);
+        //Student s2 = new Student(new int[]{1,0,1,0,0},3);
+        //Student s3 = new Student(new int[]{0,0,0,1,1},2);
+        Student s1 = new Student(new int[]{0,0,0,0},2);
+        Student s2 = new Student(new int[]{1,0,1,0},2);
+        Student s3 = new Student(new int[]{0,1,0,1},2);
+        Student s4 = new Student(new int[]{1,1,1,1},2);
         
         students[0] = s1;
         students[1] = s2;
         students[2] = s3;
+        students[3] = s4;
+        
+        
+        //Student[] students = readIn();
         
         StudentComparator sc = new StudentComparator();
+        Arrays.sort(students, sc.reversed());
         
         ArrayList<int[]> models = findPossibleModels(students);
-        System.out.println("Number of possible answer models: " + models.size());
+        if(models.size() == 1){
+            int[] model = models.get(0);
+            for(int i=0; i<model.length; i++){
+                System.out.print(model[i]);
+            }
+        }
+        else{
+            System.out.print(models.size() + " solutions");
+        }
         
-    
     }
 
-    
-    
-    //niet nodig #sad
-    private int[][] makeMatrix(Student[] students) {
-        int[][] matrix = new int[nrOfStudents][nrQuestions];
-        for (int i=0; i<nrOfStudents; i++ ) {
-            for (int j=0; j<nrQuestions; j++)
-                matrix[i][j] = students[i].getAnswers()[j];
-        }
-        return matrix;
-    }
     
     private static Student[] readIn() {
         Scanner scan = new Scanner(System.in);
@@ -127,9 +133,14 @@ public class ADSPrac2 {
         //make possible totalModels where we save the possible combinations of left and right models
         ArrayList<int[]> totalModels = new ArrayList<>();
         
-        //for each student  ---> SHOULD BECOME A WHILE LOOP SO WE CAN STOP ONCE NO POSSIBLE LEFT/RIGHT MODELS LEFT
-        for(int s=0; s<students.length; s++){
+        boolean first = true;
+        int s = 0;
+        
+        //while-loop goes through all students as long as there are more than 1 possible models
+        while((totalModels.size() > 1 && !first || first) && s < students.length){
+            first = false;
             Student student = students[s];
+            
             //Each student will leave only a certain set of combinations of left and right models possible
             ArrayList<int[]> combsOfStudent = new ArrayList<>();
             
@@ -170,8 +181,6 @@ public class ADSPrac2 {
                 combsOfStudent.addAll(combos);
                 
             }
-                
-            System.out.println("Size of combsOfStudent: "+combsOfStudent.size());
             
             //Reduce models1 and models2
             models1 = overlap(models1, allLeft);
@@ -187,8 +196,23 @@ public class ADSPrac2 {
             else{
                 //keep only the overlap between totalModels and combsOfStudent
                 totalModels = overlap(totalModels, combsOfStudent);
-            }   
+            } 
+            s++;
         }
+        
+        //As soon as only one possible model is left, we simply check for all remaining students if it gives the right score
+        if(totalModels.size() == 1){
+            int[] model = totalModels.get(0);
+            for(int i=s; s<students.length; s++){
+                Student student = students[i];
+                int[] answers = student.getAnswers();
+                boolean correct = checkModel(model, answers, student.getScore());
+                if(!correct){
+                    totalModels.remove(0);
+                }
+            }
+        }
+        
         return totalModels;
     }
     

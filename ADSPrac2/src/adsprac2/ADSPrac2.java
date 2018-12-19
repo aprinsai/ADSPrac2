@@ -39,16 +39,10 @@ public class ADSPrac2 {
         students[2] = s3;
         
         StudentComparator sc = new StudentComparator();
-        //Arrays.sort(students, sc.reversed());
         
-        ArrayList<int[]> test = new ArrayList<>();
-        int[] t = {1,2,2};
-        int[] t2 = {1,2,2};
-        test.add(t);
-        System.out.println(test.contains(t2));
+        ArrayList<int[]> models = findPossibleModels(students);
+        System.out.println("Number of possible answer models: " + models.size());
         
-        //ArrayList<int[]> models = findPossibleModels(students);
-        //System.out.println("Number of possible answer models: " + models.size());
     
     }
 
@@ -170,52 +164,18 @@ public class ADSPrac2 {
                     }
                 }
                 
-                /*
-                System.out.println("For division ["+division[0]+","+division[1]+"], these are the left and right possibilities of student "+(s+1)+":");
-                System.out.println("Left possibilities:");
-                for(int[] l : left){
-                    for(int i=0; i<left.size(); i++){
-                        System.out.print(l[i]);
-                    }
-                    System.out.println("");
-                }
-                System.out.println("Right possibilities:");
-                for(int[] r : right){
-                    for(int i=0; i<left.size(); i++){
-                        System.out.print(r[i]);
-                    }
-                    System.out.println("");
-                } */
-                
                 ArrayList<int[]> combos = findCombinations(left, right);
                 
                 //add combos to combsOfStudent
                 combsOfStudent.addAll(combos);
                 
             }
-            
-            /*
-             System.out.println("Left options of student "+ (s+1) + ":");
-                for(int[] op : allLeft){
-                    for(int i=0; i<op.length; i++){
-                        System.out.print(op[i]);
-                    }
-                    System.out.println("");
-                }
-                System.out.println("");
-                System.out.println("Right options of student "+ (s+1) + ":");
-                for(int[] op : allRight){
-                    for(int i=0; i<op.length; i++){
-                        System.out.print(op[i]);
-                    }
-                    System.out.println("");
-                } */
                 
             System.out.println("Size of combsOfStudent: "+combsOfStudent.size());
             
             //Reduce models1 and models2
-            //models1 = overlap(models1, allLeft);
-            //models2 = overlap(models2, allRight);
+            models1 = overlap(models1, allLeft);
+            models2 = overlap(models2, allRight);
             
             //the first student determines the set of solutions to start out with
             if(s == 0){
@@ -293,10 +253,28 @@ public class ADSPrac2 {
     private static ArrayList<int[]> overlap(ArrayList<int[]> totalModels, ArrayList<int[]> combsOfStudent) {
         ArrayList<int[]> overlap = new ArrayList<>();
         for(int[] model : totalModels){
-            if(combsOfStudent.contains(model)){
+            if(isIn(model, combsOfStudent)){
                 overlap.add(model);
             }
         }
         return overlap;
+    }
+    
+    /*
+    Returns true if model occurs in models.
+    */
+    private static boolean isIn(int[] model, ArrayList<int[]> models){
+        for(int[] m : models){
+            boolean temp = true;
+            for(int i=0; i<m.length; i++){
+                if(m[i] != model[i]){
+                    temp = false;
+                }
+            }
+            if(temp){
+                return true;
+            }
+        }
+        return false;
     }
 }

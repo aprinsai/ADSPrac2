@@ -5,6 +5,8 @@
  */
 package adsprac2;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -23,8 +25,9 @@ public class ADSPrac2 {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         
+        /*
         nrOfStudents=4;
         nrQuestions=5;
         //sizeHalf1=3;
@@ -43,9 +46,9 @@ public class ADSPrac2 {
         students[1] = s2;
         students[2] = s3;
         students[3] = s4;
+        */
         
-        
-        //Student[] students = readIn();
+        Student[] students = readIn();
         
         StudentComparator sc = new StudentComparator();
         Arrays.sort(students, sc.reversed());
@@ -64,20 +67,25 @@ public class ADSPrac2 {
     }
 
     
-    private static Student[] readIn() {
+    private static Student[] readIn() throws FileNotFoundException {
+        //File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
         Scanner scan = new Scanner(System.in);
         
         nrOfStudents = scan.nextInt();
         nrQuestions = scan.nextInt();
+        scan.nextLine();
+
         
         Student[] students;
         students = new Student[nrOfStudents];
         
         for (int pos = 0; pos<nrOfStudents; pos++) {
-            int answers = scan.nextInt();
-            int score = scan.nextInt();
+            String line = scan.nextLine();
+            String[] linelist = line.split(" ");
+            String number = linelist[0];
+            Integer score = Integer.parseInt(linelist[1]);
             
-            String number = String.valueOf(answers);
+           
             int[] ans = new int[number.length()];
             for (int i=0; i < number.length(); i++) {
                 ans[i] = number.charAt(i) - '0'; 

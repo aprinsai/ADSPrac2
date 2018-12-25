@@ -1,3 +1,5 @@
+
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -16,7 +18,6 @@ import java.util.Scanner;
  * @author Anouk
  */
 public class ADSPrac2 {
-    
     private static int nrOfStudents;
     private static int nrQuestions;
     private static int sizeHalf1;
@@ -26,27 +27,6 @@ public class ADSPrac2 {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws FileNotFoundException {
-        
-        /*
-        nrOfStudents=4;
-        nrQuestions=5;
-        //sizeHalf1=3;
-        //sizeHalf2=2;
-        
-        Student[] students = new Student[4];
-        //Student s1 = new Student(new int[]{0,1,1,0,1},0);
-        //Student s2 = new Student(new int[]{1,0,1,0,0},3);
-        //Student s3 = new Student(new int[]{0,0,0,1,1},2);
-        Student s1 = new Student(new int[]{0,0,0,0},2);
-        Student s2 = new Student(new int[]{1,0,1,0},2);
-        Student s3 = new Student(new int[]{0,1,0,1},2);
-        Student s4 = new Student(new int[]{1,1,1,1},2);
-        
-        students[0] = s1;
-        students[1] = s2;
-        students[2] = s3;
-        students[3] = s4;
-        */
         
         Student[] students = readIn();
         
@@ -65,11 +45,11 @@ public class ADSPrac2 {
         }
         
     }
-
     
     private static Student[] readIn() throws FileNotFoundException {
         //File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
-        Scanner scan = new Scanner(System.in);
+        File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.3.in");
+        Scanner scan = new Scanner(file);
         
         nrOfStudents = scan.nextInt();
         nrQuestions = scan.nextInt();
@@ -129,184 +109,176 @@ public class ADSPrac2 {
         
     }
     
-    private static ArrayList<int[]> findPossibleModels(Student[] students){
+     private static ArrayList<int[]> findPossibleModels(Student[] students){
         //divide into halves
         sizeHalf1 = nrQuestions/2;
         sizeHalf2 = nrQuestions-sizeHalf1;
         
-        //make possible leftModels and possible rightModels (generateAnswerModels)
+        
         ArrayList<int[]> models1 = generateAnswerModels(sizeHalf1);
-        ArrayList<int[]> models2 = generateAnswerModels(sizeHalf2);
-        
-        //make possible totalModels where we save the possible combinations of left and right models
-        ArrayList<int[]> totalModels = new ArrayList<>();
-        
-        boolean first = true;
-        int s = 0;
-        
-        //while-loop goes through all students as long as there are more than 1 possible models
-        while((totalModels.size() > 1 && !first || first) && s < students.length){
-            first = false;
-            Student student = students[s];
-            
-            //Each student will leave only a certain set of combinations of left and right models possible
-            ArrayList<int[]> combsOfStudent = new ArrayList<>();
-            
-            //find all possible score divisions over the two halves
-            ArrayList<int[]> divisions = computeDivisions(student.getScore(), sizeHalf1, sizeHalf2);
-            
-            //Divide student's answers into two sets
-            int[] answers = student.getAnswers();
-            int[] answers1 = Arrays.copyOfRange(answers, 0, sizeHalf1);
-            int[] answers2 = Arrays.copyOfRange(answers, sizeHalf1, nrQuestions);
-            
-            //Keep track of which left and right models are left possible by this student
-            ArrayList<int[]> allLeft = new ArrayList<>();
-            ArrayList<int[]> allRight = new ArrayList<>();
-            
-            //for each score division
-            for(int[] division : divisions){
-                ArrayList<int[]> m1copy = new ArrayList<>(models1);
-                ArrayList<int[]> m2copy = new ArrayList<>(models2);
-                ArrayList<int[]> left = reduceModels(answers1, m1copy, division[0]);
-                ArrayList<int[]> right = reduceModels(answers2, m2copy, division[1]);
-                
-                for(int[] l : left){
-                    if(!allLeft.contains(l)){
-                        allLeft.add(l);
-                    }
-                }
-                
-                for(int[] r : right){
-                    if(!allRight.contains(r)){
-                        allRight.add(r);
-                    }
-                }
-                
-                ArrayList<int[]> combos = findCombinations(left, right);
-                
-                //add combos to combsOfStudent
-                combsOfStudent.addAll(combos);
-                
-            }
-            
-            //Reduce models1 and models2
-            models1 = overlap(models1, allLeft);
-            models2 = overlap(models2, allRight);
-            
-            //the first student determines the set of solutions to start out with
-            if(s == 0){
-                for(int[] combo : combsOfStudent){
-                    totalModels.add(combo);
-                }
-            }
-            //all subsequent students remove solutions from the original set
-            else{
-                //keep only the overlap between totalModels and combsOfStudent
-                totalModels = overlap(totalModels, combsOfStudent);
-            } 
-            s++;
+        ArrayList<int[]> models2;
+        if (sizeHalf1==sizeHalf2) {
+            models2 = new ArrayList<>(models1);
+        }
+        else {
+            models2 = generateAnswerModels(sizeHalf2);
         }
         
-        //As soon as only one possible model is left, we simply check for all remaining students if it gives the right score
-        if(totalModels.size() == 1){
-            int[] model = totalModels.get(0);
-            for(int i=s; s<students.length; s++){
-                Student student = students[i];
-                int[] answers = student.getAnswers();
-                boolean correct = checkModel(model, answers, student.getScore());
-                if(!correct){
-                    totalModels.remove(0);
-                }
-            }
-        }
+        ArrayList<int[]> L1 = generateL1(models1, students);
+        ArrayList<int[]> L2 = generateL2(models2, students);
+        
+        // Tried this but already to slow at set B
+        Student best = students[0];
+        reduceBest(L1, L2, models1, models2, best);
+        Student worst = students[students.length-1];
+        reduceWorst(L1, L2, models1, models2, worst, students.length-1);
+        
+        
+        
+        ArrayList<int[]> totalModels = findTotalModels(L1, L2, models1, models2, students);
         
         return totalModels;
-    }
+     }
+     
+     /**
+      * nu hebben we dubbele code dus moeten we nog ff mooimaken op t end
+      * @param models
+      * @param students
+      * @return 
+      */
+     private static ArrayList<int[]> generateL1(ArrayList<int[]> models, Student[] students) {
+         ArrayList<int[]> L1 = new ArrayList<>();
+         for (int[] model : models) {
+             int [] vector = new int[nrOfStudents];
+             for (int i=0; i<students.length; i++) {
+                 Student student = students[i];
+                 int[] answers = student.getAnswers();
+                 int score = computeSubScore(model, Arrays.copyOfRange(answers, 0, sizeHalf1));
+                 vector[i] = score;
+             }
+            L1.add(vector);
+         }
+         
+         return L1;
+     }
+     
+      private static ArrayList<int[]> generateL2(ArrayList<int[]> models, Student[] students) {
+         ArrayList<int[]> L2 = new ArrayList<>();
+         for (int[] model : models) {
+             int [] vector = new int[nrOfStudents];
+             for (int i=0; i<students.length; i++) {
+                 Student student = students[i];
+                 int[] answers = student.getAnswers();
+                 int score = computeSubScore(model, Arrays.copyOfRange(answers, sizeHalf1, nrQuestions));
+                 vector[i] = score;
+             }
+            L2.add(vector);
+         }
+         
+         return L2;
+     }
+     
     
-    /**
-     * per student will be called twice for both halves
-     * remove answermodels from models if they do not give the score that is passed.
-     * @param answers
-     * @param models
-     * @param score 
+      private static ArrayList<int[]> findTotalModels(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student[] students) {
+          ArrayList<int[]> totalModels = new ArrayList<>();
+          for (int i=0; i<L1.size(); i++) {
+              int[] subscores1 = L1.get(i);
+              for (int j=0; j<L2.size(); j++) {
+                  int[] subscores2 = L2.get(j);
+                  boolean possible = true;
+                  int s = 0;
+                  while(possible && s<nrOfStudents){
+                      if (subscores1[s]+subscores2[s] != students[s].getScore()) {
+                          possible = false;
+                      }
+                      s++;
+                  }
+                  if(possible) {
+                      int[] model1 = models1.get(i);
+                      int[] model2 = models2.get(j);
+                      int[] model = new int[nrQuestions];
+                      System.arraycopy(model1, 0, model, 0, sizeHalf1);
+                      System.arraycopy(model2, 0, model, sizeHalf1, sizeHalf2);
+                      totalModels.add(model);
+                  }
+              }
+          }
+          
+          return totalModels;
+      }
+      
+     private static int computeSubScore (int[] model, int[] answers) {
+         int score = 0;
+         for (int i =0; i <model.length; i++) {
+             if (model[i]==answers[i]) {
+                 score++;
+             }
+         }
+         return score;
+     }
+     
+     /*
+     Remove all L1/models1 and L2/models2 entries that make it impossible for the best student to obtain its total score
      */
-    private static ArrayList<int[]> reduceModels (int[] answers, ArrayList<int[]> models, int subscore){
-        ArrayList<int[]> toRemove = new ArrayList<>();
-        for(int[] model : models){
-            if(!checkModel(model, answers, subscore)){
-                toRemove.add(model);
-            }
-        }
-        models.removeAll(toRemove);
-        return models;
-    }
+     private static void reduceBest(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student best){
+         int score = best.getScore();
+         ArrayList<Integer> toRemove1 = new ArrayList<>();
+         ArrayList<Integer> toRemove2 = new ArrayList<>();
+         for(int i=0; i<L1.size(); i++){
+             if(L1.get(i)[0] < score - sizeHalf2){
+                 toRemove1.add(i);
+             }
+         }
+         for(int i=0; i<L2.size(); i++){
+             if(L2.get(i)[0] < score - sizeHalf1){
+                 toRemove2.add(i);
+             }
+         }
+         
+         //Remove entries from L1, L2, models1 and models2
+         for(int i=toRemove1.size()-1; i>=0; i--){
+             int r = toRemove1.get(i);
+             L1.remove(r);
+             models1.remove(r);
+         }
+         for(int i=toRemove2.size()-1; i>=0; i--){
+             int r = toRemove2.get(i);
+             L2.remove(r);
+             models2.remove(r);
+         }
+         //System.out.println("Size toRemove1: " + toRemove1.size());
+         //System.out.println("Size toRemove2: " + toRemove2.size());
+     }
+     
+     private static void reduceWorst(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student worst, int lastIndex){
+         int score = worst.getScore();
+         ArrayList<Integer> toRemove1 = new ArrayList<>();
+         ArrayList<Integer> toRemove2 = new ArrayList<>();
+         for(int i=0; i<L1.size(); i++){
+             if(L1.get(i)[lastIndex] > score){
+                 toRemove1.add(i);
+             }
+         }
+         for(int i=0; i<L2.size(); i++){
+             if(L2.get(i)[lastIndex] > score){
+                 toRemove2.add(i);
+             }
+         }
+         
+         //Remove entries from L1, L2, models1 and models2
+         for(int i=toRemove1.size()-1; i>=0; i--){
+             int r = toRemove1.get(i);
+             L1.remove(r);
+             models1.remove(r);
+         }
+         for(int i=toRemove2.size()-1; i>=0; i--){
+             int r = toRemove2.get(i);
+             L2.remove(r);
+             models2.remove(r);
+         }
+         //System.out.println("Size toRemove1: " + toRemove1.size());
+         //System.out.println("Size toRemove2: " + toRemove2.size());
+     }
     
-    private static ArrayList<int[]> computeDivisions(int totalScore, int left, int right){
-        ArrayList<int[]> divisions = new ArrayList<>();
-        int leftScore = totalScore;
-        if(leftScore >= left){ //if the total score is larger than the left part, add the division where the complete first part is correct and the remaining correct answers are in the right half
-            int[] subscores = {left, totalScore-left}; 
-            divisions.add(subscores);
-            leftScore = left - 1;
-        }
-        while(leftScore >= 0 && totalScore-leftScore <= right){
-            int[] subscores = {leftScore, totalScore-leftScore};
-            divisions.add(subscores);
-            leftScore--;
-        }
-        return divisions;
-    }
-    
-    private static boolean checkModel(int[] model, int[] answers, int subscore){
-        int count = 0;
-        for(int i=0; i<answers.length; i++){
-            if(model[i] == answers[i]){
-                count++;
-            }
-        }
-        return count == subscore;
-    }
-    
-    private static ArrayList<int[]> findCombinations(ArrayList<int[]> models1, ArrayList<int[]> models2) {
-        ArrayList<int[]> combinations = new ArrayList<>();
-        for(int i=0; i<models1.size(); i++){
-            for(int j=0; j<models2.size(); j++){
-                int[] combined = new int[nrQuestions];
-                System.arraycopy(models1.get(i), 0, combined, 0, sizeHalf1);
-                System.arraycopy(models2.get(j), 0, combined, sizeHalf1, sizeHalf2);
-                combinations.add(combined);
-                
-            }
-        }
-        return combinations;
-    }
-    
-    private static ArrayList<int[]> overlap(ArrayList<int[]> totalModels, ArrayList<int[]> combsOfStudent) {
-        ArrayList<int[]> overlap = new ArrayList<>();
-        for(int[] model : totalModels){
-            if(isIn(model, combsOfStudent)){
-                overlap.add(model);
-            }
-        }
-        return overlap;
-    }
-    
-    /*
-    Returns true if model occurs in models.
-    */
-    private static boolean isIn(int[] model, ArrayList<int[]> models){
-        for(int[] m : models){
-            boolean temp = true;
-            for(int i=0; i<m.length; i++){
-                if(m[i] != model[i]){
-                    temp = false;
-                }
-            }
-            if(temp){
-                return true;
-            }
-        }
-        return false;
-    }
 }
+

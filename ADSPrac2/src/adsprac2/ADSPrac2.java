@@ -48,8 +48,8 @@ public class ADSPrac2 {
     
     private static Student[] readIn() throws FileNotFoundException {
         //File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
-        File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.3.in");
-        Scanner scan = new Scanner(file);
+        //File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.3.in");
+        Scanner scan = new Scanner(System.in);
         
         nrOfStudents = scan.nextInt();
         nrQuestions = scan.nextInt();
@@ -114,7 +114,13 @@ public class ADSPrac2 {
         sizeHalf1 = nrQuestions/2;
         sizeHalf2 = nrQuestions-sizeHalf1;
         
+        //Find the total number of points scored over all students
+        int total = 0;
+        for(Student student : students){
+            total += student.getScore();
+        }
         
+        //Generate all possible left and right models
         ArrayList<int[]> models1 = generateAnswerModels(sizeHalf1);
         ArrayList<int[]> models2;
         if (sizeHalf1==sizeHalf2) {
@@ -127,11 +133,19 @@ public class ADSPrac2 {
         ArrayList<int[]> L1 = generateL1(models1, students);
         ArrayList<int[]> L2 = generateL2(models2, students);
         
-        // Tried this but already to slow at set B
+        //Sort L2 based on sum of vector
+        ArrayList<ArrayList<int[]>> sortedL2 = sortVectorList(L2, total);
+        
+        // Tried this but already too slow at set B
+        for(int s=0; s<students.length; s++){
+            reduceBest(L1, L2, models1, models2, students[s], s);
+            reduceWorst(L1, L2, models1, models2, students[s], s);
+        }
+        /*
         Student best = students[0];
         reduceBest(L1, L2, models1, models2, best);
         Student worst = students[students.length-1];
-        reduceWorst(L1, L2, models1, models2, worst, students.length-1);
+        reduceWorst(L1, L2, models1, models2, worst, students.length-1); */
         
         
         
@@ -207,6 +221,42 @@ public class ADSPrac2 {
           return totalModels;
       }
       
+      private static ArrayList<int[]> findTotalModels2 (ArrayList<int[]> L1, ArrayList<ArrayList<int[]>> sortedL2, ArrayList<int[]> m1, ArrayList<int[]> m2, Student[] students, int total){
+          //for every vector in L1
+                //compute sum of vector
+                //remaining = total - sum
+                //for every vector in sortedL2.get(remaining)
+                        //for every student
+                                //check if vectorL1 + vectorL2 == score of student
+                                //if so: corresponding model is correct
+          
+          
+          
+          return null;
+      }
+     
+      
+     /*
+      Returns an ArrayList of length the total number of points scored over all students.
+      At each index, the vectors are stored that give the sum equal to this index.
+      */
+     private static ArrayList<ArrayList<int[]>> sortVectorList(ArrayList<int[]> L, int length){
+         ArrayList<ArrayList<int[]>> sorted = new ArrayList(length);
+         for(int[] vector : L){
+             int sum = 0;
+             for(int score : vector){
+                 sum += score;
+             }
+             
+             if(sorted.get(sum) == null){
+                 ArrayList<int[]> a = new ArrayList<>();
+             }
+             sorted.get(sum).add(vector);
+         }
+         
+         return sorted;
+     }
+      
      private static int computeSubScore (int[] model, int[] answers) {
          int score = 0;
          for (int i =0; i <model.length; i++) {
@@ -220,17 +270,17 @@ public class ADSPrac2 {
      /*
      Remove all L1/models1 and L2/models2 entries that make it impossible for the best student to obtain its total score
      */
-     private static void reduceBest(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student best){
+     private static void reduceBest(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student best, int index){
          int score = best.getScore();
          ArrayList<Integer> toRemove1 = new ArrayList<>();
          ArrayList<Integer> toRemove2 = new ArrayList<>();
          for(int i=0; i<L1.size(); i++){
-             if(L1.get(i)[0] < score - sizeHalf2){
+             if(L1.get(i)[index] < score - sizeHalf2){
                  toRemove1.add(i);
              }
          }
          for(int i=0; i<L2.size(); i++){
-             if(L2.get(i)[0] < score - sizeHalf1){
+             if(L2.get(i)[index] < score - sizeHalf1){
                  toRemove2.add(i);
              }
          }
@@ -250,17 +300,17 @@ public class ADSPrac2 {
          //System.out.println("Size toRemove2: " + toRemove2.size());
      }
      
-     private static void reduceWorst(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student worst, int lastIndex){
+     private static void reduceWorst(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student worst, int index){
          int score = worst.getScore();
          ArrayList<Integer> toRemove1 = new ArrayList<>();
          ArrayList<Integer> toRemove2 = new ArrayList<>();
          for(int i=0; i<L1.size(); i++){
-             if(L1.get(i)[lastIndex] > score){
+             if(L1.get(i)[index] > score){
                  toRemove1.add(i);
              }
          }
          for(int i=0; i<L2.size(); i++){
-             if(L2.get(i)[lastIndex] > score){
+             if(L2.get(i)[index] > score){
                  toRemove2.add(i);
              }
          }

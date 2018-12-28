@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -30,8 +31,8 @@ public class ADSPrac2 {
         
         Student[] students = readIn();
         
-        StudentComparator sc = new StudentComparator();
-        Arrays.sort(students, sc.reversed());
+        //StudentComparator sc = new StudentComparator();
+        //Arrays.sort(students, sc.reversed());
         
         ArrayList<int[]> models = findPossibleModels(students);
         if(models.size() == 1){
@@ -48,7 +49,7 @@ public class ADSPrac2 {
     
     private static Student[] readIn() throws FileNotFoundException {
         //File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
-        //File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.3.in");
+        //File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.2.in");
         Scanner scan = new Scanner(System.in);
         
         nrOfStudents = scan.nextInt();
@@ -114,12 +115,6 @@ public class ADSPrac2 {
         sizeHalf1 = nrQuestions/2;
         sizeHalf2 = nrQuestions-sizeHalf1;
         
-        //Find the total number of points scored over all students
-        int total = 0;
-        for(Student student : students){
-            total += student.getScore();
-        }
-        
         //Generate all possible left and right models
         ArrayList<int[]> models1 = generateAnswerModels(sizeHalf1);
         ArrayList<int[]> models2;
@@ -133,14 +128,20 @@ public class ADSPrac2 {
         ArrayList<int[]> L1 = generateL1(models1, students);
         ArrayList<int[]> L2 = generateL2(models2, students);
         
-        //Sort L2 based on sum of vector
-        ArrayList<ArrayList<int[]>> sortedL2 = sortVectorList(L2, total);
+        //Sort L2 based on one particular student
+        int studentIndex = 0; //we pick the first student
+        ArrayList<ArrayList<ArrayList<int[]>>> sortedLists = sortL2(L2, models2, studentIndex);
+        ArrayList<ArrayList<int[]>> sortedL2 = sortedLists.get(0);
+        ArrayList<ArrayList<int[]>> sortedModels2 = sortedLists.get(1);
         
+        
+        
+        /*
         // Tried this but already too slow at set B
         for(int s=0; s<students.length; s++){
             reduceBest(L1, L2, models1, models2, students[s], s);
             reduceWorst(L1, L2, models1, models2, students[s], s);
-        }
+        } */
         /*
         Student best = students[0];
         reduceBest(L1, L2, models1, models2, best);
@@ -149,7 +150,7 @@ public class ADSPrac2 {
         
         
         
-        ArrayList<int[]> totalModels = findTotalModels(L1, L2, models1, models2, students);
+        ArrayList<int[]> totalModels = findTotalModels2(L1, sortedL2, models1, sortedModels2, students, studentIndex);
         
         return totalModels;
      }
@@ -221,40 +222,76 @@ public class ADSPrac2 {
           return totalModels;
       }
       
-      private static ArrayList<int[]> findTotalModels2 (ArrayList<int[]> L1, ArrayList<ArrayList<int[]>> sortedL2, ArrayList<int[]> m1, ArrayList<int[]> m2, Student[] students, int total){
+      private static ArrayList<int[]> findTotalModels2 (ArrayList<int[]> L1, ArrayList<ArrayList<int[]>> sortedL2, ArrayList<int[]> m1, ArrayList<ArrayList<int[]>> sortedModels2, Student[] students, int studentIndex){
+          ArrayList<int[]> totalModels = new ArrayList<>();
+          int score = students[studentIndex].getScore();
+                  
           //for every vector in L1
-                //compute sum of vector
-                //remaining = total - sum
-                //for every vector in sortedL2.get(remaining)
-                        //for every student
-                                //check if vectorL1 + vectorL2 == score of student
-                                //if so: corresponding model is correct
-          
-          
-          
-          return null;
+          for(int v1=0; v1<L1.size(); v1++){
+              int[] vector1 = L1.get(v1);
+              int remaining = score - vector1[studentIndex];
+              if(remaining <= sizeHalf2 && remaining >= 0){ //if the remaining number of points is larger than the number of questions in the second half, than vector1 is invalid
+                //for every vector that corresponds to the remaining points that our student needs to get in the second half
+                for(int v2=0; v2<sortedL2.get(remaining).size(); v2++){
+                    int[] vector2 = sortedL2.get(remaining).get(v2);
+                    boolean possible = true;
+                    int s = 0;
+                    while(possible == true && s<students.length){
+                        if(vector1[s] + vector2[s] != students[s].getScore()){
+                            possible = false;
+                        }
+                        s++;
+                    }
+                    //if possible still true, then vector1 and vector2 together make a correct answer model
+                    if(possible) {
+                        int[] model1 = m1.get(v1);
+                        int[] model2 = sortedModels2.get(remaining).get(v2);
+                        int[] model = new int[nrQuestions];
+                        System.arraycopy(model1, 0, model, 0, sizeHalf1);
+                        System.arraycopy(model2, 0, model, sizeHalf1, sizeHalf2);
+                        totalModels.add(model);
+                    }
+                }
+              }
+          }
+                
+          return totalModels;
       }
      
       
      /*
-      Returns an ArrayList of length the total number of points scored over all students.
-      At each index, the vectors are stored that give the sum equal to this index.
+      Returns an ArrayList "sortedL2" of length sizeHalf2+1
+      At index i, the vectors are stored that give the particular student subscore i
+      Also returns an ArrayList "sortedModels2" that puts the models corresponding vectors in the same positions as the vectors have in "sorted"
       */
-     private static ArrayList<ArrayList<int[]>> sortVectorList(ArrayList<int[]> L, int length){
-         ArrayList<ArrayList<int[]>> sorted = new ArrayList(length);
-         for(int[] vector : L){
-             int sum = 0;
-             for(int score : vector){
-                 sum += score;
-             }
-             
-             if(sorted.get(sum) == null){
-                 ArrayList<int[]> a = new ArrayList<>();
-             }
-             sorted.get(sum).add(vector);
+     private static ArrayList<ArrayList<ArrayList<int[]>>> sortL2(ArrayList<int[]> L2, ArrayList<int[]> m2, int s){
+         ArrayList<ArrayList<int[]>> sortedL2 = new ArrayList<>(); 
+         ArrayList<ArrayList<int[]>> sortedModels2 = new ArrayList<>();
+         //subscores can range from 0 up to and including sizeHalf2, create entries for all these values
+         for(int i=0; i<sizeHalf2+1; i++){
+             sortedL2.add(null);
+             sortedModels2.add(null);
          }
          
-         return sorted;
+         //go through all vectors in L2
+         for(int i=0; i<L2.size(); i++){
+             int[] vector = L2.get(i);
+             int subscore = vector[s];
+             
+             if(sortedL2.get(subscore) == null){
+                 ArrayList<int[]> a = new ArrayList<>();
+                 sortedL2.set(subscore, a);
+                 ArrayList<int[]> m = new ArrayList<>();
+                 sortedModels2.set(subscore, m);
+             }
+             sortedL2.get(subscore).add(vector);
+             sortedModels2.get(subscore).add(m2.get(i));
+         }
+         
+         ArrayList<ArrayList<ArrayList<int[]>>> results = new ArrayList<>();
+         results.add(sortedL2);
+         results.add(sortedModels2);
+         return results;
      }
       
      private static int computeSubScore (int[] model, int[] answers) {

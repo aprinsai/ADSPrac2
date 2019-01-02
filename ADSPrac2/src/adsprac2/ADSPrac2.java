@@ -48,9 +48,9 @@ public class ADSPrac2 {
     }
     
     private static Student[] readIn() throws FileNotFoundException {
-        //File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
+        File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.3.in");
         //File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.2.in");
-        Scanner scan = new Scanner(System.in);
+        Scanner scan = new Scanner(file);
         
         nrOfStudents = scan.nextInt();
         nrQuestions = scan.nextInt();
@@ -124,34 +124,30 @@ public class ADSPrac2 {
         else {
             models2 = generateAnswerModels(sizeHalf2);
         }
+        ArrayList<int[]> totalModels = new ArrayList<>();
         
-        ArrayList<int[]> L1 = generateL1(models1, students);
-        ArrayList<int[]> L2 = generateL2(models2, students);
+        for (int studentIndex = 0; studentIndex<nrOfStudents; studentIndex++) {
         
-        //Sort L2 based on one particular student
-        int studentIndex = 0; //we pick the first student
-        ArrayList<ArrayList<ArrayList<int[]>>> sortedLists = sortL2(L2, models2, studentIndex);
-        ArrayList<ArrayList<int[]>> sortedL2 = sortedLists.get(0);
-        ArrayList<ArrayList<int[]>> sortedModels2 = sortedLists.get(1);
-        
-        
-        
-        /*
-        // Tried this but already too slow at set B
-        for(int s=0; s<students.length; s++){
-            reduceBest(L1, L2, models1, models2, students[s], s);
-            reduceWorst(L1, L2, models1, models2, students[s], s);
-        } */
-        /*
-        Student best = students[0];
-        reduceBest(L1, L2, models1, models2, best);
-        Student worst = students[students.length-1];
-        reduceWorst(L1, L2, models1, models2, worst, students.length-1); */
-        
-        
-        
-        ArrayList<int[]> totalModels = findTotalModels2(L1, sortedL2, models1, sortedModels2, students, studentIndex);
-        
+            ArrayList<int[]> L1 = generateL1(models1, students);
+            ArrayList<int[]> L2 = generateL2(models2, students);
+
+            //Sort L2 based on one particular student
+            //int studentIndex = 0; //we pick the first student
+            ArrayList<ArrayList<ArrayList<int[]>>> sortedLists = sortL2(L2, models2, studentIndex);
+            ArrayList<ArrayList<int[]>> sortedL2 = sortedLists.get(0);
+            ArrayList<ArrayList<int[]>> sortedModels2 = sortedLists.get(1);
+
+            totalModels.clear();
+            totalModels = findTotalModels2(L1, sortedL2, models1, sortedModels2, students, studentIndex);
+            models1.clear();
+            models2.clear();
+            for(int i =0; i<totalModels.size(); i++) {
+                models1.add(totalModels.get(i));
+                models2.add(totalModels.get(i++));
+            }
+            System.out.println("models1 " + models1.size());
+            System.out.println("models2 "+models2.size());
+        }
         return totalModels;
      }
      
@@ -230,7 +226,13 @@ public class ADSPrac2 {
           for(int v1=0; v1<L1.size(); v1++){
               int[] vector1 = L1.get(v1);
               int remaining = score - vector1[studentIndex];
-              if(remaining <= sizeHalf2 && remaining >= 0){ //if the remaining number of points is larger than the number of questions in the second half, than vector1 is invalid
+              //if the remaining number of points is larger than the number of questions in the second half, than vector1 is invalid
+              if(remaining <= sizeHalf2 && remaining >= 0 && !sortedL2.get(remaining).isEmpty()){ 
+                int[] model1 = m1.get(v1);
+                totalModels.add(model1);
+                if(!totalModels.contains(sortedModels2.get(remaining)))
+                            totalModels.addAll(sortedModels2.get(remaining));
+                /*
                 //for every vector that corresponds to the remaining points that our student needs to get in the second half
                 for(int v2=0; v2<sortedL2.get(remaining).size(); v2++){
                     int[] vector2 = sortedL2.get(remaining).get(v2);
@@ -242,19 +244,18 @@ public class ADSPrac2 {
                         }
                         s++;
                     }
+                    
                     //if possible still true, then vector1 and vector2 together make a correct answer model
                     if(possible) {
-                        int[] model1 = m1.get(v1);
+                        
                         int[] model2 = sortedModels2.get(remaining).get(v2);
                         int[] model = new int[nrQuestions];
                         System.arraycopy(model1, 0, model, 0, sizeHalf1);
                         System.arraycopy(model2, 0, model, sizeHalf1, sizeHalf2);
-                        totalModels.add(model);
                     }
-                }
+                }*/
               }
           }
-                
           return totalModels;
       }
      

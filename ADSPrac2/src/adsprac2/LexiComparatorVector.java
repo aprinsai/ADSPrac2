@@ -19,7 +19,7 @@ public class LexiComparatorVector implements Comparator<Vector>{
         int[] v2 = o2.getVector();
         int length1 = v1.length;
         int length2 = v2.length;
-        int length = Math.min(length2, length2);
+        int length = Math.min(length1, length2);
         for(int i=0; i<length; i++){
             if(v1[i] < v2[i]){
                 return -1;

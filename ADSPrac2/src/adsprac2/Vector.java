@@ -11,18 +11,18 @@ package adsprac2;
  */
 public class Vector {
     private int[] vector;
-    private int index;
+    private int[] model;
     
-    public Vector(int[] vector, int index){
+    public Vector(int[] vector, int[] model){
         this.vector = vector;
-        this.index = index;
+        this.model = model;
     }
     
     public int[] getVector(){
         return vector;
     }
     
-    public int getIndex(){
-        return index;
+    public int[] getModel(){
+        return model;
     }
 }

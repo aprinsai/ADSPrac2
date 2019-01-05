@@ -42,16 +42,20 @@ public class ADSPrac2 {
         } 
     }
     
+    /**
+     * 
+     * @return Returns an array containing all students.
+     * @throws FileNotFoundException 
+     */
     private static Student[] readIn() throws FileNotFoundException {
         //File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
-        //File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.2.in");
+        //File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.3.in");
         Scanner scan = new Scanner(System.in);
         
         nrOfStudents = scan.nextInt();
         nrQuestions = scan.nextInt();
         scan.nextLine();
 
-        
         Student[] students;
         students = new Student[nrOfStudents];
         
@@ -75,9 +79,12 @@ public class ADSPrac2 {
         return students;
     }
     
-    /*
-    Generates all possible answer models for a given number of yes/no questions
-    */
+    
+    /**
+     * Returns an ArrayList containing all possible answer models (int arrays) for a given number of yes/no questions.
+     * @param nrQuestions
+     * @return all possible answer models
+     */
     private static ArrayList<int[]> generateAnswerModels(int nrQuestions){
         
         int nrModels = (int) Math.pow(2, nrQuestions);
@@ -105,116 +112,159 @@ public class ADSPrac2 {
         
     }
     
-     private static ArrayList<int[]> findPossibleModels(Student[] students){
-        //Divide questions into halves
-        sizeHalf1 = nrQuestions/2;
-        sizeHalf2 = nrQuestions-sizeHalf1;
-        
-        //Generate all possible left and right models
-        ArrayList<int[]> models1 = generateAnswerModels(sizeHalf1);
-        ArrayList<int[]> models2;
-        if (sizeHalf1==sizeHalf2) {
-            models2 = new ArrayList<>(models1);
+    /**
+     * Returns an ArrayList containing all the answer models that are consistent with the scores of all students.
+     * @param students
+     * @return all correct answer models
+     */
+    private static ArrayList<int[]> findPossibleModels(Student[] students){
+       //Divide questions into halves
+       sizeHalf1 = nrQuestions/2;
+       sizeHalf2 = nrQuestions-sizeHalf1;
+
+       //Generate all possible left and right models
+       ArrayList<int[]> models1 = generateAnswerModels(sizeHalf1);
+       ArrayList<int[]> models2;
+       if (sizeHalf1==sizeHalf2) {
+           models2 = new ArrayList<>(models1);
+       }
+       else {
+           models2 = generateAnswerModels(sizeHalf2);
+       }
+
+       //Generate L1 and L2
+       ArrayList<Vector> L1 = generateL1(models1, students);
+       ArrayList<Vector> L2 = generateL2(models2, students);
+
+       //Sort L1 and L2 lexicographically, each Vector still has access to the index of the corresponding model
+       LexiComparatorVector ls = new LexiComparatorVector();
+       Collections.sort(L1, ls);
+       Collections.sort(L2, ls.reversed());
+
+       //Create vector that contains all students' scores
+       int[] scores = new int[nrOfStudents];
+       for(int i=0; i<nrOfStudents; i++){
+           scores[i] = students[i].getScore();
+       }
+
+       //Find matches of L1 and L2 items giving the correct scores
+       ArrayList<int[]> totalModels = findTotalModels(L1, L2, models1, models2, scores);
+
+       return totalModels;
+    }
+    
+    
+    /**
+     * Returns L1: an ArrayList containing the vectors of scores that students receive according to the corresponding submodels of the 
+     * first half of the questions.
+     * @param models
+     * @param students
+     * @return 
+     */
+    private static ArrayList<Vector> generateL1(ArrayList<int[]> models, Student[] students) {
+        ArrayList<Vector> L1 = new ArrayList<>();
+        for (int[] model : models){
+            int [] vector = new int[nrOfStudents];
+            for (int i=0; i<students.length; i++) {
+                Student student = students[i];
+                int[] answers = student.getAnswers();
+                int score = computeSubScore(model, Arrays.copyOfRange(answers, 0, sizeHalf1));
+                vector[i] = score;
+            }
+            L1.add(new Vector(vector, model));
         }
-        else {
-            models2 = generateAnswerModels(sizeHalf2);
+
+        return L1;
+    }
+    
+    /**
+     * Returns L2: an ArrayList containing the vectors of scores that students receive according to the corresponding submodels of the 
+     * seconds half of the questions.
+     * @param models
+     * @param students
+     * @return 
+     */
+    private static ArrayList<Vector> generateL2(ArrayList<int[]> models, Student[] students) {
+        ArrayList<Vector> L2 = new ArrayList<>();
+        for (int[] model : models){
+            int [] vector = new int[nrOfStudents];
+            for (int i=0; i<students.length; i++) {
+                Student student = students[i];
+                int[] answers = student.getAnswers();
+                int score = computeSubScore(model, Arrays.copyOfRange(answers, sizeHalf1, nrQuestions));
+                vector[i] = score;
+            }
+            L2.add(new Vector(vector, model));
         }
-        
-        //Generate L1 and L2
-        ArrayList<Vector> L1 = generateL1(models1, students);
-        ArrayList<Vector> L2 = generateL2(models2, students);
-        
-        //Sort L1 and L2 lexicographically, each Vector still has access to the index of the corresponding model
-        LexiComparatorVector ls = new LexiComparatorVector();
-        Collections.sort(L1, ls);
-        Collections.sort(L2, ls.reversed());
-        
-        //Create vector that contains all students' scores
-        int[] scores = new int[nrOfStudents];
-        for(int i=0; i<nrOfStudents; i++){
-            scores[i] = students[i].getScore();
+
+        return L2;
+    }
+    
+    
+    /**
+     * Returns the score that a set of answers receive based on a certain model.
+     * @param model
+     * @param answers
+     * @return 
+     */
+    private static int computeSubScore (int[] model, int[] answers) {
+        int score = 0;
+        for (int i =0; i <model.length; i++) {
+            if (model[i]==answers[i]) {
+                score++;
+            }
         }
-        
-        //Find matches of L1 and L2 items giving the correct scores
-        ArrayList<int[]> totalModels = findTotalModels(L1, L2, models1, models2, scores);
-        
-        return totalModels;
-     }
-     
-     /**
-      * nu hebben we dubbele code dus moeten we nog ff mooimaken op t end
-      * @param models
-      * @param students
-      * @return 
-      */
-     private static ArrayList<Vector> generateL1(ArrayList<int[]> models, Student[] students) {
-         ArrayList<Vector> L1 = new ArrayList<>();
-         for (int m=0; m<models.size(); m++){
-             int[] model = models.get(m);
-             int [] vector = new int[nrOfStudents];
-             for (int i=0; i<students.length; i++) {
-                 Student student = students[i];
-                 int[] answers = student.getAnswers();
-                 int score = computeSubScore(model, Arrays.copyOfRange(answers, 0, sizeHalf1));
-                 vector[i] = score;
-             }
-            L1.add(new Vector(vector, m));
-         }
-         
-         return L1;
-     }
-     
-      private static ArrayList<Vector> generateL2(ArrayList<int[]> models, Student[] students) {
-         ArrayList<Vector> L2 = new ArrayList<>();
-         for (int m=0; m<models.size(); m++){
-             int[] model = models.get(m);
-             int [] vector = new int[nrOfStudents];
-             for (int i=0; i<students.length; i++) {
-                 Student student = students[i];
-                 int[] answers = student.getAnswers();
-                 int score = computeSubScore(model, Arrays.copyOfRange(answers, sizeHalf1, nrQuestions));
-                 vector[i] = score;
-             }
-            L2.add(new Vector(vector, m));
-         }
-         
-         return L2;
-     }
+        return score;
+    }
      
     
-     private static ArrayList<int[]> findTotalModels(ArrayList<Vector> L1, ArrayList<Vector> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, int[] scores){
-         ArrayList<int[]> totalModels = new ArrayList<>();
-         LexiComparatorArray lc = new LexiComparatorArray();
-         int intL1 = 0;
-         int intL2 = 0;
-         int sizeL1 = L1.size();
-         int sizeL2 = L2.size();
-         
-         while(intL1 < sizeL1 && intL2 < sizeL2){
-             int[] v1 = L1.get(intL1).getVector();
-             int[] v2 = L2.get(intL2).getVector();
-             int[] sum = sumVectors(v1, v2);
-             int compare = lc.compare(sum, scores);
-             
-             if(compare == -1){ //sum is lexographically smaller than scores
-                 intL1++;
-             }
-             else if(compare == 1){ //sum is lexographically larger than scores
-                 intL2++;
-             }
-             else{ //sum and scores are equal
-                 //we have found a match, but there may be vectors of the same value right below our current v1 and v2
-                 int[] nextIndices = checkDuplicates(L1, L2, models1, models2, intL1, intL2, totalModels);
-                 intL1 = nextIndices[0];
-                 intL2 = nextIndices[1];
-             }
-         }
-        
-         return totalModels;
-     } 
+    /**
+     * Returns all answer models that are consistent with the scores of all students, based on a sorted L1 and L2. 
+     * @param L1
+     * @param L2
+     * @param models1
+     * @param models2
+     * @param scores
+     * @return 
+     */
+    private static ArrayList<int[]> findTotalModels(ArrayList<Vector> L1, ArrayList<Vector> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, int[] scores){
+        ArrayList<int[]> totalModels = new ArrayList<>();
+        LexiComparatorArray lc = new LexiComparatorArray();
+        int intL1 = 0;
+        int intL2 = 0;
+        int sizeL1 = L1.size();
+        int sizeL2 = L2.size();
+
+        while(intL1 < sizeL1 && intL2 < sizeL2){
+            int[] v1 = L1.get(intL1).getVector();
+            int[] v2 = L2.get(intL2).getVector();
+            int[] sum = sumVectors(v1, v2);
+            int compare = lc.compare(sum, scores);
+
+            if(compare == -1){ //sum is lexographically smaller than scores
+                intL1++;
+            }
+            else if(compare == 1){ //sum is lexographically larger than scores
+                intL2++;
+            }
+            else{ //sum and scores are equal
+                //we have found a match, but there may be vectors of the same value right below our current v1 and v2
+                int[] nextIndices = checkDuplicates(L1, L2, intL1, intL2, totalModels);
+                intL1 = nextIndices[0];
+                intL2 = nextIndices[1]; 
+            }
+        }
+
+        return totalModels;
+    } 
      
      
-     
+    /**
+     * Returns a vector that in each position i has the sum of the values at that same position i in both given vectors.
+     * @param v1
+     * @param v2
+     * @return 
+     */ 
     private static int[] sumVectors(int[] v1, int[] v2){
         if(v1.length == v2.length){
             int[] sum = new int[v1.length];
@@ -230,7 +280,22 @@ public class ADSPrac2 {
     } 
     
     
-    private static int[] checkDuplicates(ArrayList<Vector> L1, ArrayList<Vector> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, int intL1, int intL2, ArrayList<int[]> totalModels){
+    /**
+     * Starts at a given indices in the L1 and L2 ArrayLists, and checks for duplicate values at the following indices.
+     * The vectors at the given indices and all duplicates are used to find answer models that are consistent with the students' scores.
+     * These answer models are added to totalModels.
+     * The function returns an array of size two containing the indices in L1 and L2 where the vectors stop being the same as the ones
+     * at the starting indices.
+     * @param L1
+     * @param L2
+     * @param models1
+     * @param models2
+     * @param intL1
+     * @param intL2
+     * @param totalModels
+     * @return 
+     */
+    private static int[] checkDuplicates(ArrayList<Vector> L1, ArrayList<Vector> L2, int intL1, int intL2, ArrayList<int[]> totalModels){
         //Find duplicates in L1
         boolean same1 = true;
         int[] vector1 = L1.get(intL1).getVector();
@@ -260,22 +325,32 @@ public class ADSPrac2 {
         }
         
         //Combine the duplicates into complete models and add these to the solutions
-        addSolutions(L1, L2, models1, models2, duplicates1, duplicates2, totalModels);
+        addSolutions(L1, L2, duplicates1, duplicates2, totalModels);
         
         int[] nextIndices = {intL1, intL2};
         return nextIndices;
     }
       
-      
-    private static void addSolutions (ArrayList<Vector> L1, ArrayList<Vector> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, ArrayList<Integer> duplicates1, ArrayList<Integer> duplicates2, ArrayList<int[]> totalModels){
+    
+    /**
+     * Combines correct submodels into correct total models and adds these to the totalModels ArrayList.
+     * @param L1
+     * @param L2
+     * @param models1
+     * @param models2
+     * @param duplicates1
+     * @param duplicates2
+     * @param totalModels 
+     */
+    private static void addSolutions (ArrayList<Vector> L1, ArrayList<Vector> L2, ArrayList<Integer> duplicates1, ArrayList<Integer> duplicates2, ArrayList<int[]> totalModels){
         ArrayList<int[]> toCombine1 = new ArrayList<>();
         for(Integer i : duplicates1){
-            toCombine1.add(models1.get(L1.get(i).getIndex()));
+            toCombine1.add(L1.get(i).getModel());
         }
         
         ArrayList<int[]> toCombine2 = new ArrayList<>();
         for(Integer i : duplicates2){
-            toCombine2.add(models2.get(L2.get(i).getIndex()));
+            toCombine2.add(L2.get(i).getModel());
         }
         
         for(int i=0; i<toCombine1.size(); i++){
@@ -317,117 +392,10 @@ public class ADSPrac2 {
         reduceWorst(L1, L2, models1, models2, worst, students.length-1); */
       
       
-      
-      
-      /*private static ArrayList<int[]> findTotalModels(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student[] students) {
-          ArrayList<int[]> totalModels = new ArrayList<>();
-          for (int i=0; i<L1.size(); i++) {
-              int[] subscores1 = L1.get(i);
-              for (int j=0; j<L2.size(); j++) {
-                  int[] subscores2 = L2.get(j);
-                  boolean possible = true;
-                  int s = 0;
-                  while(possible && s<nrOfStudents){
-                      if (subscores1[s]+subscores2[s] != students[s].getScore()) {
-                          possible = false;
-                      }
-                      s++;
-                  }
-                  if(possible) {
-                      int[] model1 = models1.get(i);
-                      int[] model2 = models2.get(j);
-                      int[] model = new int[nrQuestions];
-                      System.arraycopy(model1, 0, model, 0, sizeHalf1);
-                      System.arraycopy(model2, 0, model, sizeHalf1, sizeHalf2);
-                      totalModels.add(model);
-                  }
-              }
-          }
-          
-          return totalModels;
-      } */
-      
-      private static ArrayList<int[]> findTotalModels2 (ArrayList<int[]> L1, ArrayList<ArrayList<int[]>> sortedL2, ArrayList<int[]> m1, ArrayList<ArrayList<int[]>> sortedModels2, Student[] students, int studentIndex){
-          ArrayList<int[]> totalModels = new ArrayList<>();
-          int score = students[studentIndex].getScore();
-                  
-          //for every vector in L1
-          for(int v1=0; v1<L1.size(); v1++){
-              int[] vector1 = L1.get(v1);
-              int remaining = score - vector1[studentIndex];
-              if(remaining <= sizeHalf2 && remaining >= 0){ //if the remaining number of points is larger than the number of questions in the second half, than vector1 is invalid
-                //for every vector that corresponds to the remaining points that our student needs to get in the second half
-                for(int v2=0; v2<sortedL2.get(remaining).size(); v2++){
-                    int[] vector2 = sortedL2.get(remaining).get(v2);
-                    boolean possible = true;
-                    int s = 0;
-                    while(possible == true && s<students.length){
-                        if(vector1[s] + vector2[s] != students[s].getScore()){
-                            possible = false;
-                        }
-                        s++;
-                    }
-                    //if possible still true, then vector1 and vector2 together make a correct answer model
-                    if(possible) {
-                        int[] model1 = m1.get(v1);
-                        int[] model2 = sortedModels2.get(remaining).get(v2);
-                        int[] model = new int[nrQuestions];
-                        System.arraycopy(model1, 0, model, 0, sizeHalf1);
-                        System.arraycopy(model2, 0, model, sizeHalf1, sizeHalf2);
-                        totalModels.add(model);
-                    }
-                }
-              }
-          }
-                
-          return totalModels;
-      }
+
      
-      
-     /*
-      Returns an ArrayList "sortedL2" of length sizeHalf2+1
-      At index i, the vectors are stored that give the particular student subscore i
-      Also returns an ArrayList "sortedModels2" that puts the models corresponding vectors in the same positions as the vectors have in "sorted"
-      */
-     private static ArrayList<ArrayList<ArrayList<int[]>>> sortL2(ArrayList<int[]> L2, ArrayList<int[]> m2, int s){
-         ArrayList<ArrayList<int[]>> sortedL2 = new ArrayList<>(); 
-         ArrayList<ArrayList<int[]>> sortedModels2 = new ArrayList<>();
-         //subscores can range from 0 up to and including sizeHalf2, create entries for all these values
-         for(int i=0; i<sizeHalf2+1; i++){
-             sortedL2.add(null);
-             sortedModels2.add(null);
-         }
-         
-         //go through all vectors in L2
-         for(int i=0; i<L2.size(); i++){
-             int[] vector = L2.get(i);
-             int subscore = vector[s];
-             
-             if(sortedL2.get(subscore) == null){
-                 ArrayList<int[]> a = new ArrayList<>();
-                 sortedL2.set(subscore, a);
-                 ArrayList<int[]> m = new ArrayList<>();
-                 sortedModels2.set(subscore, m);
-             }
-             sortedL2.get(subscore).add(vector);
-             sortedModels2.get(subscore).add(m2.get(i));
-         }
-         
-         ArrayList<ArrayList<ArrayList<int[]>>> results = new ArrayList<>();
-         results.add(sortedL2);
-         results.add(sortedModels2);
-         return results;
-     }
-      
-     private static int computeSubScore (int[] model, int[] answers) {
-         int score = 0;
-         for (int i =0; i <model.length; i++) {
-             if (model[i]==answers[i]) {
-                 score++;
-             }
-         }
-         return score;
-     }
+
+     
      
      /*
      Remove all L1/models1 and L2/models2 entries that make it impossible for the best student to obtain its total score

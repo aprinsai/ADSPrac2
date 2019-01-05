@@ -1,5 +1,3 @@
-
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -11,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -31,9 +30,6 @@ public class ADSPrac2 {
         
         Student[] students = readIn();
         
-        //StudentComparator sc = new StudentComparator();
-        //Arrays.sort(students, sc.reversed());
-        
         ArrayList<int[]> models = findPossibleModels(students);
         if(models.size() == 1){
             int[] model = models.get(0);
@@ -43,14 +39,13 @@ public class ADSPrac2 {
         }
         else{
             System.out.print(models.size() + " solutions");
-        }
-        
+        } 
     }
     
     private static Student[] readIn() throws FileNotFoundException {
-        File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.3.in");
+        //File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
         //File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.2.in");
-        Scanner scan = new Scanner(file);
+        Scanner scan = new Scanner(System.in);
         
         nrOfStudents = scan.nextInt();
         nrQuestions = scan.nextInt();
@@ -111,7 +106,7 @@ public class ADSPrac2 {
     }
     
      private static ArrayList<int[]> findPossibleModels(Student[] students){
-        //divide into halves
+        //Divide questions into halves
         sizeHalf1 = nrQuestions/2;
         sizeHalf2 = nrQuestions-sizeHalf1;
         
@@ -124,30 +119,25 @@ public class ADSPrac2 {
         else {
             models2 = generateAnswerModels(sizeHalf2);
         }
-        ArrayList<int[]> totalModels = new ArrayList<>();
         
-        for (int studentIndex = 0; studentIndex<nrOfStudents; studentIndex++) {
+        //Generate L1 and L2
+        ArrayList<Vector> L1 = generateL1(models1, students);
+        ArrayList<Vector> L2 = generateL2(models2, students);
         
-            ArrayList<int[]> L1 = generateL1(models1, students);
-            ArrayList<int[]> L2 = generateL2(models2, students);
-
-            //Sort L2 based on one particular student
-            //int studentIndex = 0; //we pick the first student
-            ArrayList<ArrayList<ArrayList<int[]>>> sortedLists = sortL2(L2, models2, studentIndex);
-            ArrayList<ArrayList<int[]>> sortedL2 = sortedLists.get(0);
-            ArrayList<ArrayList<int[]>> sortedModels2 = sortedLists.get(1);
-
-            totalModels.clear();
-            totalModels = findTotalModels2(L1, sortedL2, models1, sortedModels2, students, studentIndex);
-            models1.clear();
-            models2.clear();
-            for(int i =0; i<totalModels.size(); i++) {
-                models1.add(totalModels.get(i));
-                models2.add(totalModels.get(i++));
-            }
-            System.out.println("models1 " + models1.size());
-            System.out.println("models2 "+models2.size());
+        //Sort L1 and L2 lexicographically, each Vector still has access to the index of the corresponding model
+        LexiComparatorVector ls = new LexiComparatorVector();
+        Collections.sort(L1, ls);
+        Collections.sort(L2, ls.reversed());
+        
+        //Create vector that contains all students' scores
+        int[] scores = new int[nrOfStudents];
+        for(int i=0; i<nrOfStudents; i++){
+            scores[i] = students[i].getScore();
         }
+        
+        //Find matches of L1 and L2 items giving the correct scores
+        ArrayList<int[]> totalModels = findTotalModels(L1, L2, models1, models2, scores);
+        
         return totalModels;
      }
      
@@ -157,9 +147,10 @@ public class ADSPrac2 {
       * @param students
       * @return 
       */
-     private static ArrayList<int[]> generateL1(ArrayList<int[]> models, Student[] students) {
-         ArrayList<int[]> L1 = new ArrayList<>();
-         for (int[] model : models) {
+     private static ArrayList<Vector> generateL1(ArrayList<int[]> models, Student[] students) {
+         ArrayList<Vector> L1 = new ArrayList<>();
+         for (int m=0; m<models.size(); m++){
+             int[] model = models.get(m);
              int [] vector = new int[nrOfStudents];
              for (int i=0; i<students.length; i++) {
                  Student student = students[i];
@@ -167,15 +158,16 @@ public class ADSPrac2 {
                  int score = computeSubScore(model, Arrays.copyOfRange(answers, 0, sizeHalf1));
                  vector[i] = score;
              }
-            L1.add(vector);
+            L1.add(new Vector(vector, m));
          }
          
          return L1;
      }
      
-      private static ArrayList<int[]> generateL2(ArrayList<int[]> models, Student[] students) {
-         ArrayList<int[]> L2 = new ArrayList<>();
-         for (int[] model : models) {
+      private static ArrayList<Vector> generateL2(ArrayList<int[]> models, Student[] students) {
+         ArrayList<Vector> L2 = new ArrayList<>();
+         for (int m=0; m<models.size(); m++){
+             int[] model = models.get(m);
              int [] vector = new int[nrOfStudents];
              for (int i=0; i<students.length; i++) {
                  Student student = students[i];
@@ -183,14 +175,151 @@ public class ADSPrac2 {
                  int score = computeSubScore(model, Arrays.copyOfRange(answers, sizeHalf1, nrQuestions));
                  vector[i] = score;
              }
-            L2.add(vector);
+            L2.add(new Vector(vector, m));
          }
          
          return L2;
      }
      
     
-      private static ArrayList<int[]> findTotalModels(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student[] students) {
+     private static ArrayList<int[]> findTotalModels(ArrayList<Vector> L1, ArrayList<Vector> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, int[] scores){
+         ArrayList<int[]> totalModels = new ArrayList<>();
+         LexiComparatorArray lc = new LexiComparatorArray();
+         int intL1 = 0;
+         int intL2 = 0;
+         int sizeL1 = L1.size();
+         int sizeL2 = L2.size();
+         
+         while(intL1 < sizeL1 && intL2 < sizeL2){
+             int[] v1 = L1.get(intL1).getVector();
+             int[] v2 = L2.get(intL2).getVector();
+             int[] sum = sumVectors(v1, v2);
+             int compare = lc.compare(sum, scores);
+             
+             if(compare == -1){ //sum is lexographically smaller than scores
+                 intL1++;
+             }
+             else if(compare == 1){ //sum is lexographically larger than scores
+                 intL2++;
+             }
+             else{ //sum and scores are equal
+                 //we have found a match, but there may be vectors of the same value right below our current v1 and v2
+                 int[] nextIndices = checkDuplicates(L1, L2, models1, models2, intL1, intL2, totalModels);
+                 intL1 = nextIndices[0];
+                 intL2 = nextIndices[1];
+             }
+         }
+        
+         return totalModels;
+     } 
+     
+     
+     
+    private static int[] sumVectors(int[] v1, int[] v2){
+        if(v1.length == v2.length){
+            int[] sum = new int[v1.length];
+            for(int i=0; i<v1.length; i++){
+                sum[i] = v1[i] + v2[i];
+            }
+            return sum;
+        }
+        else{
+            System.out.println("Given vectors had different lengths.");
+            return null;
+        }
+    } 
+    
+    
+    private static int[] checkDuplicates(ArrayList<Vector> L1, ArrayList<Vector> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, int intL1, int intL2, ArrayList<int[]> totalModels){
+        //Find duplicates in L1
+        boolean same1 = true;
+        int[] vector1 = L1.get(intL1).getVector();
+        ArrayList<Integer> duplicates1 = new ArrayList<>();
+        while(same1 && intL1 < L1.size()){
+            if(!(Arrays.equals(L1.get(intL1).getVector(), vector1))){
+                same1 = false;
+            }
+            else{
+                duplicates1.add(intL1);
+                intL1++;
+            }
+        }
+        
+        //Find duplicates in L2
+        boolean same2 = true;
+        int[] vector2 = L2.get(intL2).getVector();
+        ArrayList<Integer> duplicates2 = new ArrayList<>();
+        while(same2 && intL2 < L2.size()){
+            if(!(Arrays.equals(L2.get(intL2).getVector(), vector2))){
+                same2 = false;
+            }
+            else{
+                duplicates2.add(intL2);
+                intL2++;
+            }
+        }
+        
+        //Combine the duplicates into complete models and add these to the solutions
+        addSolutions(L1, L2, models1, models2, duplicates1, duplicates2, totalModels);
+        
+        int[] nextIndices = {intL1, intL2};
+        return nextIndices;
+    }
+      
+      
+    private static void addSolutions (ArrayList<Vector> L1, ArrayList<Vector> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, ArrayList<Integer> duplicates1, ArrayList<Integer> duplicates2, ArrayList<int[]> totalModels){
+        ArrayList<int[]> toCombine1 = new ArrayList<>();
+        for(Integer i : duplicates1){
+            toCombine1.add(models1.get(L1.get(i).getIndex()));
+        }
+        
+        ArrayList<int[]> toCombine2 = new ArrayList<>();
+        for(Integer i : duplicates2){
+            toCombine2.add(models2.get(L2.get(i).getIndex()));
+        }
+        
+        for(int i=0; i<toCombine1.size(); i++){
+            for(int j=0; j<toCombine2.size(); j++){
+                int[] combined = new int[nrQuestions];
+                System.arraycopy(toCombine1.get(i), 0, combined, 0, sizeHalf1);
+                System.arraycopy(toCombine2.get(j), 0, combined, sizeHalf1, sizeHalf2);
+                totalModels.add(combined);    
+            }
+        }
+    } 
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      /*
+        // Tried this but already too slow at set B
+        for(int s=0; s<students.length; s++){
+            reduceBest(L1, L2, models1, models2, students[s], s);
+            reduceWorst(L1, L2, models1, models2, students[s], s);
+        } */
+        /*
+        Student best = students[0];
+        reduceBest(L1, L2, models1, models2, best);
+        Student worst = students[students.length-1];
+        reduceWorst(L1, L2, models1, models2, worst, students.length-1); */
+      
+      
+      
+      
+      /*private static ArrayList<int[]> findTotalModels(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student[] students) {
           ArrayList<int[]> totalModels = new ArrayList<>();
           for (int i=0; i<L1.size(); i++) {
               int[] subscores1 = L1.get(i);
@@ -216,7 +345,7 @@ public class ADSPrac2 {
           }
           
           return totalModels;
-      }
+      } */
       
       private static ArrayList<int[]> findTotalModels2 (ArrayList<int[]> L1, ArrayList<ArrayList<int[]>> sortedL2, ArrayList<int[]> m1, ArrayList<ArrayList<int[]>> sortedModels2, Student[] students, int studentIndex){
           ArrayList<int[]> totalModels = new ArrayList<>();
@@ -226,13 +355,7 @@ public class ADSPrac2 {
           for(int v1=0; v1<L1.size(); v1++){
               int[] vector1 = L1.get(v1);
               int remaining = score - vector1[studentIndex];
-              //if the remaining number of points is larger than the number of questions in the second half, than vector1 is invalid
-              if(remaining <= sizeHalf2 && remaining >= 0 && !sortedL2.get(remaining).isEmpty()){ 
-                int[] model1 = m1.get(v1);
-                totalModels.add(model1);
-                if(!totalModels.contains(sortedModels2.get(remaining)))
-                            totalModels.addAll(sortedModels2.get(remaining));
-                /*
+              if(remaining <= sizeHalf2 && remaining >= 0){ //if the remaining number of points is larger than the number of questions in the second half, than vector1 is invalid
                 //for every vector that corresponds to the remaining points that our student needs to get in the second half
                 for(int v2=0; v2<sortedL2.get(remaining).size(); v2++){
                     int[] vector2 = sortedL2.get(remaining).get(v2);
@@ -244,18 +367,19 @@ public class ADSPrac2 {
                         }
                         s++;
                     }
-                    
                     //if possible still true, then vector1 and vector2 together make a correct answer model
                     if(possible) {
-                        
+                        int[] model1 = m1.get(v1);
                         int[] model2 = sortedModels2.get(remaining).get(v2);
                         int[] model = new int[nrQuestions];
                         System.arraycopy(model1, 0, model, 0, sizeHalf1);
                         System.arraycopy(model2, 0, model, sizeHalf1, sizeHalf2);
+                        totalModels.add(model);
                     }
-                }*/
+                }
               }
           }
+                
           return totalModels;
       }
      
@@ -369,4 +493,3 @@ public class ADSPrac2 {
      }
     
 }
-

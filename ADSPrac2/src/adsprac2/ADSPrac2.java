@@ -29,6 +29,8 @@ public class ADSPrac2 {
     public static void main(String[] args) throws FileNotFoundException {
         
         Student[] students = readIn();
+        //StudentComparator sc = new StudentComparator();
+        //Arrays.sort(students, sc.reversed());
         
         ArrayList<int[]> models = findPossibleModels(students);
         if(models.size() == 1){
@@ -49,8 +51,8 @@ public class ADSPrac2 {
      */
     private static Student[] readIn() throws FileNotFoundException {
         //File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
-        //File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.3.in");
-        Scanner scan = new Scanner(System.in);
+        File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.3.in");
+        Scanner scan = new Scanner(file);
         
         nrOfStudents = scan.nextInt();
         nrQuestions = scan.nextInt();
@@ -135,6 +137,10 @@ public class ADSPrac2 {
        //Generate L1 and L2
        ArrayList<Vector> L1 = generateL1(models1, students);
        ArrayList<Vector> L2 = generateL2(models2, students);
+       
+       //Reduce L1 and L2 based on best and worst student
+       //reduceBest(L1, L2, students[0], 0);
+       //reduceWorst(L1, L2, students[students.length-1], students.length-1);
 
        //Sort L1 and L2 lexicographically, each Vector still has access to the index of the corresponding model
        LexiComparatorVector ls = new LexiComparatorVector();
@@ -322,13 +328,13 @@ public class ADSPrac2 {
         //Find duplicates in L1
         boolean same1 = true;
         int[] vector1 = L1.get(intL1).getVector();
-        ArrayList<Integer> duplicates1 = new ArrayList<>();
+        ArrayList<Vector> duplicates1 = new ArrayList<>();
         while(same1 && intL1 < L1.size()){
             if(!(Arrays.equals(L1.get(intL1).getVector(), vector1))){
                 same1 = false;
             }
             else{
-                duplicates1.add(intL1);
+                duplicates1.add(L1.get(intL1));
                 intL1++;
             }
         }
@@ -336,19 +342,19 @@ public class ADSPrac2 {
         //Find duplicates in L2
         boolean same2 = true;
         int[] vector2 = L2.get(intL2).getVector();
-        ArrayList<Integer> duplicates2 = new ArrayList<>();
+        ArrayList<Vector> duplicates2 = new ArrayList<>();
         while(same2 && intL2 < L2.size()){
             if(!(Arrays.equals(L2.get(intL2).getVector(), vector2))){
                 same2 = false;
             }
             else{
-                duplicates2.add(intL2);
+                duplicates2.add(L2.get(intL2));
                 intL2++;
             }
         }
         
         //Combine the duplicates into complete models and add these to the solutions
-        addSolutions(L1, L2, duplicates1, duplicates2, totalModels);
+        addSolutions(duplicates1, duplicates2, totalModels);
         
         int[] nextIndices = {intL1, intL2};
         return nextIndices;
@@ -365,15 +371,15 @@ public class ADSPrac2 {
      * @param duplicates2
      * @param totalModels 
      */
-    private static void addSolutions (ArrayList<Vector> L1, ArrayList<Vector> L2, ArrayList<Integer> duplicates1, ArrayList<Integer> duplicates2, ArrayList<int[]> totalModels){
+    private static void addSolutions (ArrayList<Vector> duplicates1, ArrayList<Vector> duplicates2, ArrayList<int[]> totalModels){
         ArrayList<int[]> toCombine1 = new ArrayList<>();
-        for(Integer i : duplicates1){
-            toCombine1.add(L1.get(i).getModel());
+        for(Vector v : duplicates1){
+            toCombine1.add(v.getModel());
         }
         
         ArrayList<int[]> toCombine2 = new ArrayList<>();
-        for(Integer i : duplicates2){
-            toCombine2.add(L2.get(i).getModel());
+        for(Vector v : duplicates2){
+            toCombine2.add(v.getModel());
         }
         
         for(int i=0; i<toCombine1.size(); i++){
@@ -423,64 +429,56 @@ public class ADSPrac2 {
      /*
      Remove all L1/models1 and L2/models2 entries that make it impossible for the best student to obtain its total score
      */
-     private static void reduceBest(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student best, int index){
+     private static void reduceBest(ArrayList<Vector> L1, ArrayList<Vector> L2, Student best, int index){
          int score = best.getScore();
          ArrayList<Integer> toRemove1 = new ArrayList<>();
          ArrayList<Integer> toRemove2 = new ArrayList<>();
          for(int i=0; i<L1.size(); i++){
-             if(L1.get(i)[index] < score - sizeHalf2){
+             if(L1.get(i).getVector()[index] < score - sizeHalf2){
                  toRemove1.add(i);
              }
          }
          for(int i=0; i<L2.size(); i++){
-             if(L2.get(i)[index] < score - sizeHalf1){
+             if(L2.get(i).getVector()[index] < score - sizeHalf1){
                  toRemove2.add(i);
              }
          }
          
-         //Remove entries from L1, L2, models1 and models2
+         //Remove entries from L1 and L2
          for(int i=toRemove1.size()-1; i>=0; i--){
              int r = toRemove1.get(i);
              L1.remove(r);
-             models1.remove(r);
          }
          for(int i=toRemove2.size()-1; i>=0; i--){
              int r = toRemove2.get(i);
              L2.remove(r);
-             models2.remove(r);
          }
-         //System.out.println("Size toRemove1: " + toRemove1.size());
-         //System.out.println("Size toRemove2: " + toRemove2.size());
      }
      
-     private static void reduceWorst(ArrayList<int[]> L1, ArrayList<int[]> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, Student worst, int index){
+     private static void reduceWorst(ArrayList<Vector> L1, ArrayList<Vector> L2, Student worst, int index){
          int score = worst.getScore();
          ArrayList<Integer> toRemove1 = new ArrayList<>();
          ArrayList<Integer> toRemove2 = new ArrayList<>();
          for(int i=0; i<L1.size(); i++){
-             if(L1.get(i)[index] > score){
+             if(L1.get(i).getVector()[index] > score){
                  toRemove1.add(i);
              }
          }
          for(int i=0; i<L2.size(); i++){
-             if(L2.get(i)[index] > score){
+             if(L2.get(i).getVector()[index] > score){
                  toRemove2.add(i);
              }
          }
          
-         //Remove entries from L1, L2, models1 and models2
+         //Remove entries from L1 and L2
          for(int i=toRemove1.size()-1; i>=0; i--){
              int r = toRemove1.get(i);
              L1.remove(r);
-             models1.remove(r);
          }
          for(int i=toRemove2.size()-1; i>=0; i--){
              int r = toRemove2.get(i);
              L2.remove(r);
-             models2.remove(r);
          }
-         //System.out.println("Size toRemove1: " + toRemove1.size());
-         //System.out.println("Size toRemove2: " + toRemove2.size());
      }
     
 }

@@ -148,7 +148,7 @@ public class ADSPrac2 {
        }
 
        //Find matches of L1 and L2 items giving the correct scores
-       ArrayList<int[]> totalModels = findTotalModels(L1, L2, models1, models2, scores);
+       ArrayList<int[]> totalModels = findTotalModels(L1, L2, scores);
 
        return totalModels;
     }
@@ -227,7 +227,7 @@ public class ADSPrac2 {
      * @param scores
      * @return 
      */
-    private static ArrayList<int[]> findTotalModels(ArrayList<Vector> L1, ArrayList<Vector> L2, ArrayList<int[]> models1, ArrayList<int[]> models2, int[] scores){
+    private static ArrayList<int[]> findTotalModels(ArrayList<Vector> L1, ArrayList<Vector> L2, int[] scores){
         ArrayList<int[]> totalModels = new ArrayList<>();
         LexiComparatorArray lc = new LexiComparatorArray();
         int intL1 = 0;
@@ -238,7 +238,7 @@ public class ADSPrac2 {
         while(intL1 < sizeL1 && intL2 < sizeL2){
             int[] v1 = L1.get(intL1).getVector();
             int[] v2 = L2.get(intL2).getVector();
-            int[] sum = sumVectors(v1, v2);
+            /*int[] sum = sumVectors(v1, v2);
             int compare = lc.compare(sum, scores);
 
             if(compare == -1){ //sum is lexographically smaller than scores
@@ -248,6 +248,29 @@ public class ADSPrac2 {
                 intL2++;
             }
             else{ //sum and scores are equal
+                //we have found a match, but there may be vectors of the same value right below our current v1 and v2
+                int[] nextIndices = checkDuplicates(L1, L2, intL1, intL2, totalModels);
+                intL1 = nextIndices[0];
+                intL2 = nextIndices[1]; 
+            } */
+            
+            int s = 0;
+            boolean possible = true;
+            while(s < nrOfStudents && possible){
+                int sum = v1[s] + v2[s];
+                int score = scores[s];
+                
+                if(sum < score){ //sum is lexographically smaller than scores
+                    possible = false;
+                    intL1++;
+                }
+                else if(sum > score){ //sum is lexographically larger than scores
+                    possible = false;
+                    intL2++;
+                }
+                s++;
+            }
+            if(possible){
                 //we have found a match, but there may be vectors of the same value right below our current v1 and v2
                 int[] nextIndices = checkDuplicates(L1, L2, intL1, intL2, totalModels);
                 intL1 = nextIndices[0];

@@ -11,9 +11,9 @@ package adsprac2;
  */
 public class Vector {
     private int[] vector;
-    private int[] model;
+    private boolean[] model;
     
-    public Vector(int[] vector, int[] model){
+    public Vector(int[] vector, boolean[] model){
         this.vector = vector;
         this.model = model;
     }
@@ -22,7 +22,7 @@ public class Vector {
         return vector;
     }
     
-    public int[] getModel(){
+    public boolean[] getModel(){
         return model;
     }
 }

@@ -31,11 +31,17 @@ public class ADSPrac2 {
         //StudentComparator sc = new StudentComparator();
         //Arrays.sort(students, sc.reversed());
         
-        ArrayList<int[]> models = findPossibleModels(students);
+        ArrayList<boolean[]> models = findPossibleModels(students);
         if(models.size() == 1){
-            int[] model = models.get(0);
+            boolean[] model = models.get(0);
             for(int i=0; i<model.length; i++){
-                System.out.print(model[i]);
+                    if(model[i]){
+                        System.out.print("1");
+                    }
+                    else{
+                        System.out.print("0");
+                    }
+                
             }
         }
         else{
@@ -50,8 +56,8 @@ public class ADSPrac2 {
      */
     private static Student[] readIn() throws FileNotFoundException {
         //File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
-        File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.3.in");
-        Scanner scan = new Scanner(file);
+        //File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
+        Scanner scan = new Scanner(System.in);
         
         nrOfStudents = scan.nextInt();
         nrQuestions = scan.nextInt();
@@ -67,9 +73,16 @@ public class ADSPrac2 {
             Integer score = Integer.parseInt(linelist[1]);
             
            
-            int[] ans = new int[number.length()];
+            boolean[] ans = new boolean[number.length()];
             for (int i=0; i < number.length(); i++) {
-                ans[i] = number.charAt(i) - '0'; 
+                char c = number.charAt(i);
+                //ans[i] = number.charAt(i) - '0'; 
+                if(c=='0'){
+                    ans[i] = false;
+                }
+                else{
+                    ans[i] = true;
+                }
             }
             
             Student s = new Student(ans, score);
@@ -86,22 +99,22 @@ public class ADSPrac2 {
      * @param nrQuestions
      * @return all possible answer models
      */
-    private static ArrayList<int[]> generateAnswerModels(int nrQuestions){
+    private static ArrayList<boolean[]> generateAnswerModels(int nrQuestions){
         
         int nrModels = (int) Math.pow(2, nrQuestions);
-        ArrayList<int[]> models = new ArrayList<>();
+        ArrayList<boolean[]> models = new ArrayList<>();
         
         for(int i=0; i<nrModels; i++)
         {
             int temp = i;
-            int[] answers = new int[nrQuestions];
+            boolean[] answers = new boolean[nrQuestions];
             for (int j = 0; j < nrQuestions; j++)
             {
                 if (temp%2 == 1){
-                    answers[j]=1;
+                    answers[j]=true;
                 }
                 else{
-                    answers[j] = 0;
+                    answers[j] =false;
                     
                 }
                 temp = temp/2;
@@ -118,14 +131,14 @@ public class ADSPrac2 {
      * @param students
      * @return all correct answer models
      */
-    private static ArrayList<int[]> findPossibleModels(Student[] students){
+    private static ArrayList<boolean[]> findPossibleModels(Student[] students){
        //Divide questions into halves
        sizeHalf1 = nrQuestions/2;
        sizeHalf2 = nrQuestions-sizeHalf1;
 
        //Generate all possible left and right models
-       ArrayList<int[]> models1 = generateAnswerModels(sizeHalf1);
-       ArrayList<int[]> models2;
+       ArrayList<boolean[]> models1 = generateAnswerModels(sizeHalf1);
+       ArrayList<boolean[]> models2;
        if (sizeHalf1==sizeHalf2) {
            models2 = new ArrayList<>(models1);
        }
@@ -153,7 +166,7 @@ public class ADSPrac2 {
        }
 
        //Find matches of L1 and L2 items giving the correct scores
-       ArrayList<int[]> totalModels = findTotalModels(L1, L2, scores);
+       ArrayList<boolean[]> totalModels = findTotalModels(L1, L2, scores);
 
        return totalModels;
     }
@@ -166,14 +179,14 @@ public class ADSPrac2 {
      * @param students
      * @return 
      */
-    private static ArrayList<Vector> generateL1(ArrayList<int[]> models, Student[] students) {
+    private static ArrayList<Vector> generateL1(ArrayList<boolean[]> models, Student[] students) {
         ArrayList<Vector> L1 = new ArrayList<>();
         ArrayList<Vector> L2 = new ArrayList<>();
-        for (int[] model : models){
+        for (boolean[] model : models){
             int [] vector = new int[nrOfStudents];
             for (int i=0; i<students.length; i++) {
                 Student student = students[i];
-                int[] answers = student.getAnswers();
+                boolean[] answers = student.getAnswers();
                 int score = computeSubScore(model, Arrays.copyOfRange(answers, 0, sizeHalf1));
                 vector[i] = score;
             }
@@ -190,13 +203,13 @@ public class ADSPrac2 {
      * @param students
      * @return 
      */
-    private static ArrayList<Vector> generateL2(ArrayList<int[]> models, Student[] students) {
+    private static ArrayList<Vector> generateL2(ArrayList<boolean[]> models, Student[] students) {
         ArrayList<Vector> L2 = new ArrayList<>();
-        for (int[] model : models){
-            int [] vector = new int[nrOfStudents];
+        for (boolean[] model : models){
+            int[] vector = new int[nrOfStudents];
             for (int i=0; i<students.length; i++) {
                 Student student = students[i];
-                int[] answers = student.getAnswers();
+                boolean[] answers = student.getAnswers();
                 int score = computeSubScore(model, Arrays.copyOfRange(answers, sizeHalf1, nrQuestions));
                 vector[i] = score;
             }
@@ -213,7 +226,7 @@ public class ADSPrac2 {
      * @param answers
      * @return 
      */
-    private static int computeSubScore (int[] model, int[] answers) {
+    private static int computeSubScore (boolean[] model, boolean[] answers) {
         int score = 0;
         for (int i =0; i <model.length; i++) {
             if (model[i]==answers[i]) {
@@ -233,8 +246,8 @@ public class ADSPrac2 {
      * @param scores
      * @return 
      */
-    private static ArrayList<int[]> findTotalModels(ArrayList<Vector> L1, ArrayList<Vector> L2, int[] scores){
-        ArrayList<int[]> totalModels = new ArrayList<>();
+    private static ArrayList<boolean[]> findTotalModels(ArrayList<Vector> L1, ArrayList<Vector> L2, int[] scores){
+        ArrayList<boolean[]> totalModels = new ArrayList<>();
         int intL1 = 0;
         int intL2 = 0;
         int sizeL1 = L1.size();
@@ -307,7 +320,7 @@ public class ADSPrac2 {
      * @param totalModels
      * @return 
      */
-    private static int[] checkDuplicates(ArrayList<Vector> L1, ArrayList<Vector> L2, int intL1, int intL2, ArrayList<int[]> totalModels){
+    private static int[] checkDuplicates(ArrayList<Vector> L1, ArrayList<Vector> L2, int intL1, int intL2, ArrayList<boolean[]> totalModels){
         //Find duplicates in L1
         boolean same1 = true;
         int[] vector1 = L1.get(intL1).getVector();
@@ -354,20 +367,20 @@ public class ADSPrac2 {
      * @param duplicates2
      * @param totalModels 
      */
-    private static void addSolutions (ArrayList<Vector> duplicates1, ArrayList<Vector> duplicates2, ArrayList<int[]> totalModels){
-        ArrayList<int[]> toCombine1 = new ArrayList<>();
+    private static void addSolutions (ArrayList<Vector> duplicates1, ArrayList<Vector> duplicates2, ArrayList<boolean[]> totalModels){
+        ArrayList<boolean[]> toCombine1 = new ArrayList<>();
         for(Vector v : duplicates1){
             toCombine1.add(v.getModel());
         }
         
-        ArrayList<int[]> toCombine2 = new ArrayList<>();
+        ArrayList<boolean[]> toCombine2 = new ArrayList<>();
         for(Vector v : duplicates2){
             toCombine2.add(v.getModel());
         }
         
         for(int i=0; i<toCombine1.size(); i++){
             for(int j=0; j<toCombine2.size(); j++){
-                int[] combined = new int[nrQuestions];
+                boolean[] combined = new boolean[nrQuestions];
                 System.arraycopy(toCombine1.get(i), 0, combined, 0, sizeHalf1);
                 System.arraycopy(toCombine2.get(j), 0, combined, sizeHalf1, sizeHalf2);
                 totalModels.add(combined);    

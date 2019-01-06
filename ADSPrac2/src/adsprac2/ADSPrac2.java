@@ -10,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -169,6 +168,7 @@ public class ADSPrac2 {
      */
     private static ArrayList<Vector> generateL1(ArrayList<int[]> models, Student[] students) {
         ArrayList<Vector> L1 = new ArrayList<>();
+        ArrayList<Vector> L2 = new ArrayList<>();
         for (int[] model : models){
             int [] vector = new int[nrOfStudents];
             for (int i=0; i<students.length; i++) {
@@ -235,7 +235,6 @@ public class ADSPrac2 {
      */
     private static ArrayList<int[]> findTotalModels(ArrayList<Vector> L1, ArrayList<Vector> L2, int[] scores){
         ArrayList<int[]> totalModels = new ArrayList<>();
-        LexiComparatorArray lc = new LexiComparatorArray();
         int intL1 = 0;
         int intL2 = 0;
         int sizeL1 = L1.size();
@@ -244,22 +243,6 @@ public class ADSPrac2 {
         while(intL1 < sizeL1 && intL2 < sizeL2){
             int[] v1 = L1.get(intL1).getVector();
             int[] v2 = L2.get(intL2).getVector();
-            /*int[] sum = sumVectors(v1, v2);
-            int compare = lc.compare(sum, scores);
-
-            if(compare == -1){ //sum is lexographically smaller than scores
-                intL1++;
-            }
-            else if(compare == 1){ //sum is lexographically larger than scores
-                intL2++;
-            }
-            else{ //sum and scores are equal
-                //we have found a match, but there may be vectors of the same value right below our current v1 and v2
-                int[] nextIndices = checkDuplicates(L1, L2, intL1, intL2, totalModels);
-                intL1 = nextIndices[0];
-                intL2 = nextIndices[1]; 
-            } */
-            
             int s = 0;
             boolean possible = true;
             while(s < nrOfStudents && possible){

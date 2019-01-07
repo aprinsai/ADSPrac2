@@ -5,15 +5,17 @@
  */
 package adsprac2;
 
+import java.util.BitSet;
+
 /**
  *
  * @author mlmla
  */
 public class Vector {
     private int[] vector;
-    private boolean[] model;
+    private BitSet model;
     
-    public Vector(int[] vector, boolean[] model){
+    public Vector(int[] vector, BitSet model){
         this.vector = vector;
         this.model = model;
     }
@@ -22,7 +24,7 @@ public class Vector {
         return vector;
     }
     
-    public boolean[] getModel(){
+    public BitSet getModel(){
         return model;
     }
 }

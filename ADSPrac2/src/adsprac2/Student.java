@@ -5,21 +5,23 @@
  */
 package adsprac2;
 
+import java.util.BitSet;
+
 /**
  *
  * @author Anouk
  */
 public class Student{
     
-    private boolean[] answers;
+    private BitSet answers;
     private int score;
     
-    Student(boolean[] answers, int score) {
+    Student(BitSet answers, int score) {
         this.answers = answers;
         this.score = score;
     }
     
-    public boolean[] getAnswers() {
+    public BitSet getAnswers() {
         return this.answers;
     }
     
@@ -27,7 +29,7 @@ public class Student{
         return this.score;
     }
     
-    public void setAnswers(boolean[] a) {
+    public void setAnswers(BitSet a) {
         this.answers = a;
     }
     

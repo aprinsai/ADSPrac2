@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Scanner;
 
@@ -56,8 +57,8 @@ public class ADSPrac2 {
      */
     private static Student[] readIn() throws FileNotFoundException {
         //File file = new File("C:\\Users\\Anouk\\Documents\\Third year AI\\Algoritmen en Datastructuren\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
-        //File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
-        Scanner scan = new Scanner(System.in);
+        File file = new File("C:\\Users\\mlmla\\Documents\\Y3\\Algorithms & Data Structures\\ADSPrac2\\ADSPrac2\\src\\samples\\sample-A.1.in");
+        Scanner scan = new Scanner(file);
         
         nrOfStudents = scan.nextInt();
         nrQuestions = scan.nextInt();
@@ -72,20 +73,19 @@ public class ADSPrac2 {
             String number = linelist[0];
             Integer score = Integer.parseInt(linelist[1]);
             
-           
-            boolean[] ans = new boolean[number.length()];
+            BitSet answers = new BitSet(nrQuestions);
             for (int i=0; i < number.length(); i++) {
                 char c = number.charAt(i);
                 //ans[i] = number.charAt(i) - '0'; 
                 if(c=='0'){
-                    ans[i] = false;
+                    answers.set(i, false);
                 }
                 else{
-                    ans[i] = true;
+                    answers.set(i, false);
                 }
             }
             
-            Student s = new Student(ans, score);
+            Student s = new Student(answers, score);
             students[pos] = s;
             
         }
@@ -99,22 +99,22 @@ public class ADSPrac2 {
      * @param nrQuestions
      * @return all possible answer models
      */
-    private static ArrayList<boolean[]> generateAnswerModels(int nrQuestions){
+    private static ArrayList<BitSet> generateAnswerModels(int nrQuestions){
         
         int nrModels = (int) Math.pow(2, nrQuestions);
-        ArrayList<boolean[]> models = new ArrayList<>();
+        ArrayList<BitSet> models = new ArrayList<>();
         
         for(int i=0; i<nrModels; i++)
         {
             int temp = i;
-            boolean[] answers = new boolean[nrQuestions];
+            BitSet answers = new BitSet(nrQuestions);
             for (int j = 0; j < nrQuestions; j++)
             {
                 if (temp%2 == 1){
-                    answers[j]=true;
+                    answers.set(j, true);
                 }
                 else{
-                    answers[j] =false;
+                    answers.set(j, false);
                     
                 }
                 temp = temp/2;
@@ -137,8 +137,8 @@ public class ADSPrac2 {
        sizeHalf2 = nrQuestions-sizeHalf1;
 
        //Generate all possible left and right models
-       ArrayList<boolean[]> models1 = generateAnswerModels(sizeHalf1);
-       ArrayList<boolean[]> models2;
+       ArrayList<BitSet> models1 = generateAnswerModels(sizeHalf1);
+       ArrayList<BitSet> models2;
        if (sizeHalf1==sizeHalf2) {
            models2 = new ArrayList<>(models1);
        }
@@ -179,15 +179,15 @@ public class ADSPrac2 {
      * @param students
      * @return 
      */
-    private static ArrayList<Vector> generateL1(ArrayList<boolean[]> models, Student[] students) {
+    private static ArrayList<Vector> generateL1(ArrayList<BitSet> models, Student[] students) {
         ArrayList<Vector> L1 = new ArrayList<>();
         ArrayList<Vector> L2 = new ArrayList<>();
-        for (boolean[] model : models){
+        for (BitSet model : models){
             int [] vector = new int[nrOfStudents];
             for (int i=0; i<students.length; i++) {
                 Student student = students[i];
-                boolean[] answers = student.getAnswers();
-                int score = computeSubScore(model, Arrays.copyOfRange(answers, 0, sizeHalf1));
+                BitSet answers = student.getAnswers().get(0, sizeHalf1);
+                int score = computeSubScore(model, answers);
                 vector[i] = score;
             }
             L1.add(new Vector(vector, model));
@@ -203,14 +203,14 @@ public class ADSPrac2 {
      * @param students
      * @return 
      */
-    private static ArrayList<Vector> generateL2(ArrayList<boolean[]> models, Student[] students) {
+    private static ArrayList<Vector> generateL2(ArrayList<BitSet> models, Student[] students) {
         ArrayList<Vector> L2 = new ArrayList<>();
-        for (boolean[] model : models){
+        for (BitSet model : models){
             int[] vector = new int[nrOfStudents];
             for (int i=0; i<students.length; i++) {
                 Student student = students[i];
-                boolean[] answers = student.getAnswers();
-                int score = computeSubScore(model, Arrays.copyOfRange(answers, sizeHalf1, nrQuestions));
+                BitSet answers = student.getAnswers().get(sizeHalf1, nrQuestions);
+                int score = computeSubScore(model, answers);
                 vector[i] = score;
             }
             L2.add(new Vector(vector, model));
@@ -226,10 +226,10 @@ public class ADSPrac2 {
      * @param answers
      * @return 
      */
-    private static int computeSubScore (boolean[] model, boolean[] answers) {
+    private static int computeSubScore (BitSet model, BitSet answers) {
         int score = 0;
-        for (int i =0; i <model.length; i++) {
-            if (model[i]==answers[i]) {
+        for (int i =0; i <model.length(); i++) {
+            if (model.get(i) == answers.get(i)) {
                 score++;
             }
         }
@@ -368,12 +368,12 @@ public class ADSPrac2 {
      * @param totalModels 
      */
     private static void addSolutions (ArrayList<Vector> duplicates1, ArrayList<Vector> duplicates2, ArrayList<boolean[]> totalModels){
-        ArrayList<boolean[]> toCombine1 = new ArrayList<>();
+        ArrayList<BitSet> toCombine1 = new ArrayList<>();
         for(Vector v : duplicates1){
             toCombine1.add(v.getModel());
         }
         
-        ArrayList<boolean[]> toCombine2 = new ArrayList<>();
+        ArrayList<BitSet> toCombine2 = new ArrayList<>();
         for(Vector v : duplicates2){
             toCombine2.add(v.getModel());
         }
@@ -381,8 +381,9 @@ public class ADSPrac2 {
         for(int i=0; i<toCombine1.size(); i++){
             for(int j=0; j<toCombine2.size(); j++){
                 boolean[] combined = new boolean[nrQuestions];
-                System.arraycopy(toCombine1.get(i), 0, combined, 0, sizeHalf1);
-                System.arraycopy(toCombine2.get(j), 0, combined, sizeHalf1, sizeHalf2);
+                //System.arraycopy(toCombine1.get(i), 0, combined, 0, sizeHalf1);
+                //System.arraycopy(toCombine2.get(j), 0, combined, sizeHalf1, sizeHalf2);
+                
                 totalModels.add(combined);    
             }
         }

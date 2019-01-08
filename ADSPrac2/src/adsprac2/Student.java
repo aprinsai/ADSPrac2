@@ -1,11 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package adsprac2;
-
-import java.util.BitSet;
 
 /**
  *
@@ -13,15 +6,15 @@ import java.util.BitSet;
  */
 public class Student{
     
-    private BitSet answers;
+    private boolean[] answers;
     private int score;
     
-    Student(BitSet answers, int score) {
+    Student(boolean[] answers, int score) {
         this.answers = answers;
         this.score = score;
     }
     
-    public BitSet getAnswers() {
+    public boolean[] getAnswers() {
         return this.answers;
     }
     
@@ -29,7 +22,7 @@ public class Student{
         return this.score;
     }
     
-    public void setAnswers(BitSet a) {
+    public void setAnswers(boolean[] a) {
         this.answers = a;
     }
     
